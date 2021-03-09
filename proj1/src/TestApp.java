@@ -8,14 +8,14 @@ class TestApp {
             return;
         }
 
-        String peer_ap = args[0];
-        String sub_protocol = args[1];
+        String peerAp = args[0];
+        String subProtocol = args[1];
 
         try {
             Registry registry = LocateRegistry.getRegistry();
-            IRemote stub = (IRemote) registry.lookup(peer_ap);
+            IRemote stub = (IRemote) registry.lookup(peerAp);
 
-            switch(sub_protocol){
+            switch(subProtocol){
                 case "BACKUP":
                     if(args.length != 4){
                        usage();
@@ -70,6 +70,6 @@ class TestApp {
     }
 
     public static void usage(){
-        System.err.println("Usage: java TestApp <peer_ap> <sub_protocol> <opnd_1> <opnd_2>");
+        System.err.println("Usage: java TestApp <peerAp> <subProtocol> <opnd_1> <opnd_2>");
     }
 }
