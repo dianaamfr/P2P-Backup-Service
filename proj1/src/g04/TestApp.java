@@ -1,3 +1,5 @@
+package g04;
+
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 

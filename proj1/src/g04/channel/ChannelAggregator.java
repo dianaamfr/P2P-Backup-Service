@@ -1,4 +1,4 @@
-package channel;
+package g04.channel;
 
 import java.io.IOException;
 

@@ -1,7 +1,9 @@
+package g04;
+
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import channel.ChannelAggregator;
+import g04.channel.ChannelAggregator;
 
 import java.rmi.registry.LocateRegistry;
 import java.io.IOException;

@@ -1,3 +1,5 @@
+package g04;
+
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
