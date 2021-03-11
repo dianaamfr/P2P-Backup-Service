@@ -1,17 +1,16 @@
 package g04;
 
+import java.io.IOException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 import g04.channel.ChannelAggregator;
+import g04.storage.Chunk;
 import g04.storage.SFile;
-
-import java.rmi.registry.LocateRegistry;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.rmi.RemoteException;
 
 public class Peer implements IRemote {
 
@@ -50,7 +49,7 @@ public class Peer implements IRemote {
             mdrPort = Integer.parseInt(args[8]);
 
             channelAggregator = new ChannelAggregator(mcAddress, mcPort, mdbAddress, mdbPort, mdrAddress, mdrPort);
-            
+
             registry = LocateRegistry.getRegistry();
 
         } catch (NumberFormatException e) {
@@ -77,16 +76,18 @@ public class Peer implements IRemote {
 
     @Override
     public String backup(String fileName, int replicationDegree) throws RemoteException {
-        
-        try {
-			SFile file = new SFile(fileName, replicationDegree);
-            file.generateChunks();
 
-		} catch (NoSuchAlgorithmException e) {
-		} catch (IOException e) {
-			// Throw error message - file error
-			e.printStackTrace();
-		}
+        try {
+            SFile file = new SFile(fileName, replicationDegree);
+            ArrayList<Chunk> chunks = file.generateChunks();
+
+            
+
+        } catch (NoSuchAlgorithmException e) {
+        } catch (IOException e) {
+            // Throw error message - file error
+            e.printStackTrace();
+        }
 
         return null;
     }
@@ -95,7 +96,6 @@ public class Peer implements IRemote {
     public String restore(String fileName) throws RemoteException {
         // TODO Auto-generated method stub
 
-        
         return null;
     }
 

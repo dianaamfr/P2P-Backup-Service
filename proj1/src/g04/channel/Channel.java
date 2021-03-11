@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.nio.charset.StandardCharsets;
+import java.security.NoSuchAlgorithmException;
 
 public class Channel {
 
@@ -20,10 +22,33 @@ public class Channel {
 
         this.socket = new MulticastSocket(this.port);
         this.socket.joinGroup(this.address);
-
-        // byte[] sbuf = (Utils.PEER_ID).getBytes();
-        // DatagramPacket packet = new DatagramPacket(sbuf, sbuf.length, this.address, this.port);
-        // this.socket.send(packet);
     }
 
+    public byte[] generateMessage(String protocolVersion, String operation, String senderId, String fileId,
+            String[] optional, byte[] body) {
+        StringBuilder builder = new StringBuilder();
+
+        builder.append(protocolVersion);
+        builder.append(" ");
+        builder.append(operation);
+        builder.append(" ");
+        builder.append(senderId);
+        builder.append(" ");
+        builder.append(fileId);
+        for (String op : optional) {
+            builder.append(" ");
+            builder.append(op);
+        }
+        builder.append(" ");
+        builder.append(Utils.CRLF);
+        builder.append(Utils.CRLF);
+
+        byte[] header = builder.toString().getBytes(StandardCharsets.US_ASCII);
+
+        byte[] message = new byte[header.length + body.length];
+        System.arraycopy(header, 0, message, 0, header.length);
+        System.arraycopy(body, 0, message, header.length, body.length);
+
+        return message;
+    }
 }

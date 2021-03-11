@@ -13,4 +13,36 @@ public class Chunk {
         this.replicationDegree[0] = replicationDegree;
         this.replicationDegree[1] = 0;
     }
+
+	public int getChunkNum() {
+		return chunkNum;
+	}
+
+	public void setChunkNum(int chunkNum) {
+		this.chunkNum = chunkNum;
+	}
+
+	public String getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(String fileId) {
+		this.fileId = fileId;
+	}
+
+	public byte[] getBuffer() {
+		return buffer;
+	}
+
+	public void setBuffer(byte[] buffer) {
+		this.buffer = buffer;
+	}
+
+	public int[] getReplicationDegree() {
+		return replicationDegree;
+	}
+
+	public void setReplicationDegree(int[] replicationDegree) {
+		this.replicationDegree = replicationDegree;
+	}
 }

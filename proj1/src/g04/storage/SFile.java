@@ -13,7 +13,7 @@ public class SFile {
     private String fileName;
     private String fileId;
     private int replicationDegree;
-    private ConcurrentHashMap<Integer,ArrayList<String>> chunks;
+    private ConcurrentHashMap<Integer,ArrayList<String>> chunks; // Verificar se precisamos
 
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
         this.fileName = fileName;
@@ -22,7 +22,7 @@ public class SFile {
         this.chunks = new ConcurrentHashMap<>();
     }
 
-    public void generateChunks() throws IOException{
+    public ArrayList<Chunk> generateChunks() throws IOException{
         System.out.println("Generating chunks");
 
         File file = new File(fileName);
@@ -35,7 +35,7 @@ public class SFile {
         int chunksNum = (int) Math.ceil((double) file.length() / Utils.CHUNK_SIZE);
 
         // Read chunks
-        ArrayList<Chunk> chunks = new ArrayList();
+        ArrayList<Chunk> chunks = new ArrayList<>();
         byte[] fileBytes = Files.readAllBytes(file.toPath());
         
         for(int i = 0; i < chunksNum ; i++) { 
@@ -46,14 +46,18 @@ public class SFile {
 
             Chunk chunk = new Chunk(i, this.fileId, buf, this.replicationDegree);
             chunks.add(chunk);
+
+            this.chunks.put(i, new ArrayList<>());
         }
 
         // File Size is multiple of the chunk size 
         if(file.length() % Utils.CHUNK_SIZE == 0){
             Chunk chunk = new Chunk(chunksNum, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
+
+            this.chunks.put(chunksNum, new ArrayList<>());
         }
 
+        return chunks;
     }
-
 }

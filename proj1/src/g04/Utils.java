@@ -54,8 +54,19 @@ public class Utils {
         digest = MessageDigest.getInstance("SHA-256");
         hash = digest.digest(builder.toString().getBytes(StandardCharsets.UTF_8));
 
-        return hash.toString();
+        return bytesToHex(hash);
     }
+
+    public static String bytesToHex(byte[] hash) {
+		StringBuffer hexString = new StringBuffer();
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1)
+				hexString.append('0');
+			hexString.append(hex);
+		}
+		return hexString.toString();
+	}
     
     public static void usage(String message) {
         System.err.println(message);
