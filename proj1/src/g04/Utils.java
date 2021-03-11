@@ -38,10 +38,11 @@ public class Utils {
         return ThreadLocalRandom.current().nextInt(MIN_DELAY, MAX_DELAY);
     }
 
-    public final static String generate_hash(File file) throws IOException, NoSuchAlgorithmException {
+    public final static String generateHash(String fileName) throws IOException, NoSuchAlgorithmException {
 
         StringBuilder builder = new StringBuilder();
-
+        File file = new File(fileName);
+        
         // Get name, modification date and owner of the file
         builder.append(file.getName());
         builder.append(file.lastModified());
