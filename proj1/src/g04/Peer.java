@@ -28,7 +28,7 @@ public class Peer implements IRemote {
         }
 
         String protocolVersion = args[0];
-        String peerId = args[1];
+        int senderId = Integer.parseInt(args[1]);
         String peerAp = args[2];
 
         String mcAddress = "", mdbAddress = "", mdrAddress = "";
@@ -68,10 +68,10 @@ public class Peer implements IRemote {
         registry.rebind(peerAp, remote);
 
         Utils.PROTOCOL_VERSION = protocolVersion;
-        Utils.PEER_ID = peerId;
+        Utils.PEER_ID = senderId;
         Utils.PEER = peer;
 
-        System.out.println("Peer with id " + peerId + " registered to service with name " + peerAp);
+        System.out.println("Peer with id " + Utils.PEER_ID + " registered to service with name " + peerAp);
     }
 
     @Override
@@ -80,8 +80,6 @@ public class Peer implements IRemote {
         try {
             SFile file = new SFile(fileName, replicationDegree);
             ArrayList<Chunk> chunks = file.generateChunks();
-
-            
 
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {

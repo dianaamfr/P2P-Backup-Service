@@ -11,7 +11,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Utils {
 
     public static String PROTOCOL_VERSION;
-    public static String PEER_ID;
+    public static int PEER_ID;
     public static Peer PEER;
 
     public final static String CRLF = "\r\n";
@@ -19,6 +19,8 @@ public class Utils {
     public final static int CHUNK_SIZE = 64000;
     public final static int MAX_CHUNKS = 1000000;
     public final static long MAX_FILE = 64000000000l;
+    public static final int HEADER_SIZE = 128;
+    public static final int PACKET_SIZE = CHUNK_SIZE + HEADER_SIZE;
 
     public final static int MAX_TRIES = 5;
     public final static int WAIT_TIME = 1000;

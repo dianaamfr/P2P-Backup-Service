@@ -2,11 +2,9 @@ package g04.channel;
 
 import g04.Utils;
 import java.io.IOException;
-import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
-import java.security.NoSuchAlgorithmException;
 
 public class Channel {
 
@@ -24,7 +22,7 @@ public class Channel {
         this.socket.joinGroup(this.address);
     }
 
-    public byte[] generateMessage(String protocolVersion, String operation, String senderId, String fileId,
+    public byte[] generateMessage(String protocolVersion, String operation, int senderId, String fileId,
             String[] optional, byte[] body) {
         StringBuilder builder = new StringBuilder();
 

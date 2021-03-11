@@ -13,7 +13,7 @@ public class BackupChannel extends Channel {
         super(address, port);
     }
     
-    public void putChunk(String protocolVersion, String senderId, Chunk chunk){
+    public void putChunk(String protocolVersion, int senderId, Chunk chunk){
         byte[] message = super.generateMessage(
             protocolVersion, 
             "PUTCHUNK", 
