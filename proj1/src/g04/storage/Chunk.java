@@ -1,6 +1,9 @@
 package g04.storage;
 
-public class Chunk {
+import java.io.Serializable;
+import java.util.Arrays;
+
+public class Chunk implements Serializable {
     private int chunkNum;
     private String fileId;
     private byte[] buffer;
@@ -45,4 +48,11 @@ public class Chunk {
 	public void setReplicationDegree(int[] replicationDegree) {
 		this.replicationDegree = replicationDegree;
 	}
+
+	@Override
+	public String toString() {
+		return "Chunk [chunkNum=" + chunkNum + ", fileId=" + fileId + ", replicationDegree="
+				+ Arrays.toString(replicationDegree) + "]";
+	}
+
 }
