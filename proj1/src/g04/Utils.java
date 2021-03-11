@@ -1,7 +1,9 @@
 package g04;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,6 +18,7 @@ public class Utils {
     
     public final static int CHUNK_SIZE = 64000;
     public final static int MAX_CHUNKS = 1000000;
+    public final static long MAX_FILE = 64000000000l;
 
     public final static int MAX_TRIES = 5;
     public final static int WAIT_TIME = 1000;
@@ -35,26 +38,20 @@ public class Utils {
         return ThreadLocalRandom.current().nextInt(MIN_DELAY, MAX_DELAY);
     }
 
-    public final static String generate_hash(String path) {
-
-        File file = new File(path);
+    public final static String generate_hash(File file) throws IOException, NoSuchAlgorithmException {
 
         StringBuilder builder = new StringBuilder();
 
+        // Get name, modification date and owner of the file
         builder.append(file.getName());
         builder.append(file.lastModified());
-        builder.append(file.getParent());
+        builder.append(Files.getOwner(file.toPath()));
 
         MessageDigest digest;
         byte[] hash = null;
         
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-            hash = digest.digest(builder.toString().getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException e) {
-            System.err.println("No Such Hash Algorithm");
-            return null;
-        }
+        digest = MessageDigest.getInstance("SHA-256");
+        hash = digest.digest(builder.toString().getBytes(StandardCharsets.UTF_8));
 
         return hash.toString();
     }

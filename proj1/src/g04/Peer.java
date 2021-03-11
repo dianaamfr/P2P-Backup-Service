@@ -2,11 +2,14 @@ package g04;
 
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.NoSuchAlgorithmException;
 
 import g04.channel.ChannelAggregator;
 
 import java.rmi.registry.LocateRegistry;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.rmi.RemoteException;
 
 public class Peer implements IRemote {
@@ -73,7 +76,44 @@ public class Peer implements IRemote {
 
     @Override
     public String backup(String fileName, int replicationDegree) throws RemoteException {
-        // TODO Auto-generated method stub
+        String hash;
+        File file = new File(fileName);
+
+        try {
+            // Generate FileId
+            hash = Utils.generate_hash(file);
+
+            // Check File Size
+            int chunksNum = (int) Math.ceil((double) file.length() / Utils.CHUNK_SIZE);
+            
+            if( chunksNum > Utils.MAX_CHUNKS || file.length() >= Utils.MAX_FILE ){
+                // File exceeds maximum size 
+                return null;    
+            }
+            
+            // File Size is multiple of the chunk size 
+            if(file.length() % Utils.CHUNK_SIZE == 0){
+                // Add extra chunk with size 0
+                chunksNum++;
+            }
+
+            System.out.println("File size: " + file.length());
+            System.out.println("Number of chunks: " + chunksNum);
+
+
+            // Store (pathName, fileId) pair ?
+
+        
+            // Read file bytes
+            byte[] fileBytes = Files.readAllBytes(file.toPath());
+
+            // Chunk Division
+
+        } catch (IOException | NoSuchAlgorithmException e) {
+            // Error creating fileId
+            e.printStackTrace();
+        }
+
         return null;
     }
 
