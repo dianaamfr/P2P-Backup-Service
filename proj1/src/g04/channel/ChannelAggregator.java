@@ -2,6 +2,8 @@ package g04.channel;
 
 import java.io.IOException;
 
+import g04.Peer;
+
 public class ChannelAggregator {
 
     private final ControlChannel controlChannel;
@@ -14,7 +16,6 @@ public class ChannelAggregator {
         this.controlChannel = new ControlChannel(mcAddress, mcPort);
         this.backupChannel = new BackupChannel(mdbAddress, mdbPort);
         this.restoreChannel = new RestoreChannel(mdrAddress, mdrPort);
-
     }
 
     public ControlChannel getControlChannel() {
@@ -27,5 +28,11 @@ public class ChannelAggregator {
 
     public RestoreChannel getRestoreChannel() {
         return restoreChannel;
+    }
+
+    public void run(Peer peer){
+        this.backupChannel.run(peer);
+        //this.restoreChannel.run(peer);
+        //this.controlChannel.run(peer);
     }
 }

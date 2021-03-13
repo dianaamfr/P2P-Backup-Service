@@ -20,7 +20,7 @@ public class BackupChannel extends Channel {
             new String[]{Integer.toString(chunk.getChunkNum()), Integer.toString(chunk.getReplicationDegree()[0])}, 
             chunk.getBuffer());
 
-        return new DatagramPacket(message, message.length);
+        return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
     

@@ -57,4 +57,8 @@ public class Chunk implements Serializable {
 				+ Arrays.toString(replicationDegree) + "]";
 	}
 
+	public ChunkKey getChunkKey() {
+		return new ChunkKey(this.fileId, this.chunkNum);
+	}
+
 }

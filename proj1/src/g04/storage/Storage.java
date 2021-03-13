@@ -8,17 +8,29 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.concurrent.ConcurrentHashMap;
 
 import g04.Utils;
  
 public class Storage {
+
     private String path;
+    private ConcurrentHashMap<ChunkKey, ArrayList<Integer>> backupConfirmations; // To store the backup confirmations
+    private ArrayList<SFile> storedFiles; // To retrieve information about files which the peer has initiated a backup for
 
     public Storage() throws IOException{
         this.path = "g04/chunks/peer" + Utils.PEER_ID;
+
+        this.backupConfirmations = new ConcurrentHashMap<>();
+        this.storedFiles = new ArrayList<>();
     }
 
-    public void store(SFile file) throws IOException {
+    public void store(SFile file) throws IOException { 
+        this.storedFiles.add(file);
+
+        // Serialize file - not sure if we need to do this
+        /*
         String fileDir = this.path + "/file" + file.getFileId();
         Files.createDirectories(Paths.get(fileDir));
 
@@ -27,7 +39,7 @@ public class Storage {
 
         o.writeObject(file);
         o.close();
-        f.close();
+        f.close();*/
     }
 
     public void store(Chunk chunk) throws IOException{
@@ -50,5 +62,27 @@ public class Storage {
         Chunk c = (Chunk) oi.readObject();
         System.out.println(c.toString());
         return (Chunk) oi.readObject();
+    }
+
+    public int getConfirmedBackups(ChunkKey chunkKey) {
+       
+        if(this.backupConfirmations.containsKey(chunkKey)){
+            return this.backupConfirmations.get(chunkKey).size();
+        }
+        
+        return 0;
+    }
+
+    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
+
+        if (this.backupConfirmations.containsKey(chunkKey)) {
+			ArrayList<Integer> chunkPeers = new ArrayList<Integer>(this.backupConfirmations.get(chunkKey));
+            chunkPeers.add(serverId);
+            this.backupConfirmations.put(chunkKey, chunkPeers);
+		} else {
+			ArrayList<Integer> chunkPeers = new ArrayList<Integer>();
+            chunkPeers.add(serverId);
+			this.backupConfirmations.put(chunkKey, chunkPeers);
+		}
     }
 }

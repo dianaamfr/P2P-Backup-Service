@@ -1,9 +1,7 @@
 package g04.storage;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +17,7 @@ public class SFile implements Serializable {
     private String fileId;
     private int replicationDegree;
     private File file;
-    private ConcurrentHashMap<Integer,ArrayList<String>> chunks; // Verificar se precisamos
+    private ConcurrentHashMap<Integer,ArrayList<String>> chunks; // Verificar se precisamos (já não temos na storage?)
 
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
         this.fileName = fileName;
@@ -70,32 +68,12 @@ public class SFile implements Serializable {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public String getFileId() {
         return fileId;
     }
 
-    public void setFileId(String fileId) {
-        this.fileId = fileId;
-    }
-
     public int getReplicationDegree() {
         return replicationDegree;
-    }
-
-    public void setReplicationDegree(int replicationDegree) {
-        this.replicationDegree = replicationDegree;
-    }
-
-    public ConcurrentHashMap<Integer, ArrayList<String>> getChunks() {
-        return chunks;
-    }
-
-    public void setChunks(ConcurrentHashMap<Integer, ArrayList<String>> chunks) {
-        this.chunks = chunks;
     }
 
 }

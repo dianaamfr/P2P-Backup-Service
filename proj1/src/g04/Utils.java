@@ -12,7 +12,6 @@ public class Utils {
 
     public static String PROTOCOL_VERSION;
     public static int PEER_ID;
-    public static Peer PEER;
 
     public final static String CRLF = "\r\n";
     

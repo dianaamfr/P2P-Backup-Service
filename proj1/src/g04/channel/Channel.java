@@ -1,19 +1,20 @@
 package g04.channel;
 
+import g04.Peer;
 import g04.Utils;
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 
 public class Channel {
 
-    private final InetAddress address;
-    private final int port;
+    protected final InetAddress address;
+    protected final int port;
 
     protected final MulticastSocket socket;
+    protected MessageReceiver messageReceiver;
 
     public Channel(String address, int port) throws IOException {
 
@@ -22,6 +23,7 @@ public class Channel {
 
         this.socket = new MulticastSocket(this.port);
         this.socket.joinGroup(this.address);
+
     }
 
     public byte[] generateMessage(String protocolVersion, String operation, int senderId, String fileId,
@@ -58,6 +60,11 @@ public class Channel {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void run(Peer peer){
+        this.messageReceiver = new MessageReceiver(peer);
+        peer.getScheduler().execute(this.messageReceiver);
     }
 
 }

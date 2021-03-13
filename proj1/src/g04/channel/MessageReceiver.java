@@ -2,7 +2,6 @@ package g04.channel;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.nio.charset.StandardCharsets;
 
 import g04.Peer;
@@ -19,6 +18,8 @@ public class MessageReceiver implements Runnable {
     @Override
     public void run() {
 
+        System.out.println("Message Receiver of peer " + Utils.PEER_ID + " starting");
+
         while (true) {
 
             byte[] message = new byte[Utils.PACKET_SIZE];
@@ -27,12 +28,13 @@ public class MessageReceiver implements Runnable {
 
             try {
                 this.peer.getBackupChannel().socket.receive(packet);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             String received = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.US_ASCII);
-            System.out.println(received.substring(0, 128));
+            System.out.println("Peer " + Utils.PEER_ID + " received a message");
         }
     }
 }

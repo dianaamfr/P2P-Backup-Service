@@ -12,7 +12,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
+import g04.channel.PutChunkHandler;
 import g04.storage.Chunk;
+import g04.storage.ChunkKey;
 import g04.storage.SFile;
 import g04.storage.Storage;
 
@@ -35,8 +37,8 @@ public class Peer implements IRemote {
             System.exit(1);
         }
 
-        String protocolVersion = args[0];
-        int senderId = Integer.parseInt(args[1]);
+        Utils.PROTOCOL_VERSION = args[0];
+        Utils.PEER_ID = Integer.parseInt(args[1]);
         String peerAp = args[2];
 
         String mcAddress = "", mdbAddress = "", mdrAddress = "";
@@ -72,14 +74,12 @@ public class Peer implements IRemote {
 
         peer = new Peer(channelAggregator);
         IRemote remote = (IRemote) UnicastRemoteObject.exportObject(peer, 0);
-
         registry.rebind(peerAp, remote);
 
-        Utils.PROTOCOL_VERSION = protocolVersion;
-        Utils.PEER_ID = senderId;
-        Utils.PEER = peer;
-
         System.out.println("Peer with id " + Utils.PEER_ID + " registered to service with name " + peerAp);
+
+        channelAggregator.run(peer);
+
     }
 
     @Override
@@ -91,11 +91,9 @@ public class Peer implements IRemote {
 
             ArrayList<Chunk> chunks = file.generateChunks();
 
-            for (Chunk chunk : chunks) {
-                this.storage.store(chunk);
-            }
-
             DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0));
+            
+            scheduler.execute(new PutChunkHandler(this, packet, chunks.get(0).getChunkKey(), replicationDegree));
 
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {
@@ -104,10 +102,6 @@ public class Peer implements IRemote {
         }
 
         return null;
-    }
-
-    public BackupChannel getBackupChannel() {
-        return this.channelAggregator.getBackupChannel();
     }
 
     @Override
@@ -134,4 +128,19 @@ public class Peer implements IRemote {
         // TODO Auto-generated method stub
         return null;
     }
+
+
+    public BackupChannel getBackupChannel() {
+        return this.channelAggregator.getBackupChannel();
+    }
+
+
+    public int getBackupConfirmations(ChunkKey chunkKey) {
+        return storage.getConfirmedBackups(chunkKey);
+    }
+
+    public ScheduledThreadPoolExecutor getScheduler() {
+        return scheduler;
+    }
+
 }
