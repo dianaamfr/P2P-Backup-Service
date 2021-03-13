@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 public class Chunk implements Serializable {
-    private int chunkNum;
+
+	private static final long serialVersionUID = 328214701342162801L;
+	private int chunkNum;
     private String fileId;
     private byte[] buffer;
     private int[] replicationDegree = new int[2]; // [1] desired; [2] perceived

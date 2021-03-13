@@ -11,7 +11,6 @@ import java.nio.file.Paths;
 
 import g04.Utils;
  
-
 public class Storage {
     private String path;
 
@@ -19,11 +18,23 @@ public class Storage {
         this.path = "g04/chunks/peer" + Utils.PEER_ID;
     }
 
+    public void store(SFile file) throws IOException {
+        String fileDir = this.path + "/file" + file.getFileId();
+        Files.createDirectories(Paths.get(fileDir));
+
+        FileOutputStream f = new FileOutputStream(new File(fileDir + "/file-" + file.getFileId() + ".ser"));
+        ObjectOutputStream o = new ObjectOutputStream(f);
+
+        o.writeObject(file);
+        o.close();
+        f.close();
+    }
+
     public void store(Chunk chunk) throws IOException{
         String fileDir = this.path + "/file" + chunk.getFileId();
         Files.createDirectories(Paths.get(fileDir));
 
-        FileOutputStream f = new FileOutputStream(new File(fileDir + "/chunk" + chunk.getChunkNum() + ".ser"));
+        FileOutputStream f = new FileOutputStream(new File(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser"));
         ObjectOutputStream o = new ObjectOutputStream(f);
 
         o.writeObject(chunk);
@@ -32,7 +43,7 @@ public class Storage {
     }
 
     public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
-        String chunkPath =  this.path + "/file" + fileId + "/chunk" + chunkNum + ".ser";
+        String chunkPath =  this.path + "/file" + fileId + "/chunk-" + chunkNum + ".ser";
         FileInputStream fi = new FileInputStream(new File(chunkPath));
         ObjectInputStream oi = new ObjectInputStream(fi);
     

@@ -1,26 +1,34 @@
 package g04;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
+import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
 import g04.storage.Chunk;
 import g04.storage.SFile;
+import g04.storage.Storage;
 
 public class Peer implements IRemote {
 
     private ChannelAggregator channelAggregator;
+    private Storage storage;
+    private ScheduledThreadPoolExecutor scheduler;
 
-    public Peer(ChannelAggregator aggregator) throws RemoteException {
+    public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
+        this.storage = new Storage();
+        this.scheduler = new ScheduledThreadPoolExecutor(50);
     }
 
-    public static void main(String[] args) throws RemoteException {
+    public static void main(String[] args) throws IOException {
 
         if (args.length != 9) {
             Utils.usage("Wrong number of arguments");
@@ -79,7 +87,15 @@ public class Peer implements IRemote {
 
         try {
             SFile file = new SFile(fileName, replicationDegree);
+            this.storage.store(file);
+
             ArrayList<Chunk> chunks = file.generateChunks();
+
+            for (Chunk chunk : chunks) {
+                this.storage.store(chunk);
+            }
+
+            DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0));
 
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {
@@ -88,6 +104,10 @@ public class Peer implements IRemote {
         }
 
         return null;
+    }
+
+    public BackupChannel getBackupChannel() {
+        return this.channelAggregator.getBackupChannel();
     }
 
     @Override

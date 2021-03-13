@@ -2,6 +2,8 @@ package g04.channel;
 
 import g04.Utils;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
@@ -49,4 +51,13 @@ public class Channel {
 
         return message;
     }
+
+    public void sendMessage(DatagramPacket packet) {
+        try {
+            this.socket.send(packet);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
