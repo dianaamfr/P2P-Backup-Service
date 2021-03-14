@@ -29,7 +29,7 @@ public abstract class Channel {
     }
 
     public byte[] generateMessage(String protocolVersion, String operation, int senderId, String fileId,
-            String[] optional, byte[] body) {
+            String[] optional) {
         StringBuilder builder = new StringBuilder();
 
         builder.append(protocolVersion);
@@ -49,6 +49,13 @@ public abstract class Channel {
 
         byte[] header = builder.toString().getBytes(StandardCharsets.US_ASCII);
 
+        return header;
+    }
+
+    public byte[] generateMessage(String protocolVersion, String operation, int senderId, String fileId,
+            String[] optional, byte[] body) {
+                
+        byte[] header = this.generateMessage(protocolVersion, operation, senderId, fileId, optional);
         byte[] message = new byte[header.length + body.length];
         System.arraycopy(header, 0, message, 0, header.length);
         System.arraycopy(body, 0, message, header.length, body.length);

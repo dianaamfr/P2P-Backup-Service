@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
+import g04.channel.ControlChannel;
 import g04.channel.PutChunkHandler;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
@@ -132,6 +133,10 @@ public class Peer implements IRemote {
 
     public BackupChannel getBackupChannel() {
         return this.channelAggregator.getBackupChannel();
+    }
+
+    public ControlChannel getControlChannel() {
+        return this.channelAggregator.getControlChannel();
     }
 
     public Storage getStorage(){

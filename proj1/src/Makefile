@@ -8,7 +8,7 @@ all:
 	javac g04/*.java
 	
 clean:
-	rm g04/*.class && rm g04/*/*.class
+	rm g04/*.class && rm g04/*/*.class && rm g04/*/*/*.class
 
 rmi:
 	rmiregistry &

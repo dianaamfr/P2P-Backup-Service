@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import g04.Peer;
 import g04.Utils;
+import g04.channel.ControlChannel;
 import g04.storage.Chunk;
 import g04.storage.Storage;
 
@@ -18,7 +19,7 @@ public class BackupReceiver extends MessageReceiver {
 
     @Override
     public void run() {
-        System.out.println("Message Receiver of peer " + Utils.PEER_ID + " starting");
+        System.out.println("Backup Receiver of peer " + Utils.PEER_ID + " starting");
 
         while (true) {
 
@@ -35,24 +36,34 @@ public class BackupReceiver extends MessageReceiver {
 
             String received = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.US_ASCII);
 
-            HashMap<String,String> parsed = this.parseMessage(received);
+            HashMap<String, String> parsed = this.parseMessage(received);
 
-            if(parsed.get("MessageType").equals("PUTCHUNK") && !parsed.get("SenderId").equals(Integer.toString(Utils.PEER_ID))){
-                Chunk chunk = new Chunk(
-                    Integer.parseInt(parsed.get("ChunkNo")),
-                    parsed.get("FileId"), 
-                    parsed.get("Body").getBytes(),
-                    Integer.parseInt(parsed.get("ReplicationDeg")));
+            if (parsed.get("MessageType").equals("PUTCHUNK")
+                    && !parsed.get("SenderId").equals(Integer.toString(Utils.PEER_ID))) {
+
+                // Make it a thread
+
+                Chunk chunk = new Chunk(Integer.parseInt(parsed.get("ChunkNo")), parsed.get("FileId"),
+                        parsed.get("Body").getBytes(), Integer.parseInt(parsed.get("ReplicationDeg")));
 
                 Storage storage = peer.getStorage();
 
-                if(storage.getConfirmedStoredChunks(chunk.getChunkKey()) < 0){
+                if (storage.getConfirmedStoredChunks(chunk.getChunkKey()) < 0) {
                     try {
-						storage.store(chunk);
+                        storage.store(chunk);
                         storage.addChunk(chunk.getChunkKey());
-					} catch (IOException e) {
+
+                        ControlChannel controlChannel = peer.getControlChannel();
+
+                        controlChannel.sendMessage(controlChannel.storedPacket(
+                            Utils.PROTOCOL_VERSION, 
+                            Utils.PEER_ID,
+                            chunk.getChunkKey()));
+                        
+                    } catch (IOException e) {
                         // Failed at storing the chunk
-					}
+                        e.printStackTrace();
+                    }
                 }
             }
         }

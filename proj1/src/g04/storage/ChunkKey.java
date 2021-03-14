@@ -1,7 +1,11 @@
 package g04.storage;
 
-public class ChunkKey {
-    private String fileId;
+import java.io.Serializable;
+
+public class ChunkKey implements Serializable {
+
+	private static final long serialVersionUID = -8070875167232670060L;
+	private String fileId;
     private int chunkNum;
 
     public ChunkKey(String fileId, int chunkNum) {

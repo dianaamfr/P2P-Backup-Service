@@ -33,6 +33,6 @@ public class ChannelAggregator {
     public void run(Peer peer){
         this.backupChannel.run(peer);
         //this.restoreChannel.run(peer);
-        //this.controlChannel.run(peer);
+        this.controlChannel.run(peer);
     }
 }
