@@ -17,7 +17,6 @@ public class PutChunkHandler implements Runnable {
     private int tries;
     private int time;
 
-
     public PutChunkHandler(Peer peer, DatagramPacket packet, ChunkKey chunkKey, int replicationDegree, int tries, int time) {
         this.peer = peer;
         this.packet = packet;
@@ -35,7 +34,7 @@ public class PutChunkHandler implements Runnable {
     @Override
     public void run() {
         
-        if(this.peer.getBackupConfirmations(chunkKey) < replicationDegree && tries < Utils.MAX_TRIES) {
+        if(this.peer.getStorage().getConfirmedBackups(chunkKey) < replicationDegree && this.tries < Utils.MAX_TRIES) {
             // Send PutChunk message
             System.out.println("Peer " + Utils.PEER_ID + " sent putchunk message try " + this.tries);
             this.peer.getBackupChannel().sendMessage(packet);

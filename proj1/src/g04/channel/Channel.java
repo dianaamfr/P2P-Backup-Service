@@ -2,13 +2,15 @@ package g04.channel;
 
 import g04.Peer;
 import g04.Utils;
+import g04.channel.message.MessageReceiver;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
 import java.nio.charset.StandardCharsets;
 
-public class Channel {
+public abstract class Channel {
 
     protected final InetAddress address;
     protected final int port;
@@ -62,9 +64,9 @@ public class Channel {
         }
     }
 
-    public void run(Peer peer){
-        this.messageReceiver = new MessageReceiver(peer);
-        peer.getScheduler().execute(this.messageReceiver);
-    }
+    public abstract void run(Peer peer);
 
+    public MulticastSocket getSocket(){
+        return this.socket;
+    }
 }

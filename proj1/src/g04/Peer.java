@@ -134,13 +134,11 @@ public class Peer implements IRemote {
         return this.channelAggregator.getBackupChannel();
     }
 
-
-    public int getBackupConfirmations(ChunkKey chunkKey) {
-        return storage.getConfirmedBackups(chunkKey);
+    public Storage getStorage(){
+        return this.storage;
     }
 
     public ScheduledThreadPoolExecutor getScheduler() {
         return scheduler;
     }
-
 }

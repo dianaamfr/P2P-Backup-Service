@@ -10,6 +10,8 @@ public class Chunk implements Serializable {
     private String fileId;
     private byte[] buffer;
     private int[] replicationDegree = new int[2]; // [1] desired; [2] perceived
+
+	private ChunkKey chunkKey;
     
     public Chunk(int chunkNum, String fileId, byte[] buffer, int replicationDegree){
         this.chunkNum = chunkNum;
@@ -17,6 +19,8 @@ public class Chunk implements Serializable {
         this.buffer = buffer;
         this.replicationDegree[0] = replicationDegree;
         this.replicationDegree[1] = 0;
+
+		this.chunkKey = new ChunkKey(this.fileId, this.chunkNum);
     }
 
 	public int getChunkNum() {
@@ -58,7 +62,7 @@ public class Chunk implements Serializable {
 	}
 
 	public ChunkKey getChunkKey() {
-		return new ChunkKey(this.fileId, this.chunkNum);
+		return this.chunkKey;
 	}
 
 }

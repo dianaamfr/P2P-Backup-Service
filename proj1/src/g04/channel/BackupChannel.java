@@ -3,6 +3,8 @@ package g04.channel;
 import java.io.IOException;
 import java.net.DatagramPacket;
 
+import g04.Peer;
+import g04.channel.message.BackupReceiver;
 import g04.storage.Chunk;
 
 public class BackupChannel extends Channel {
@@ -23,6 +25,9 @@ public class BackupChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
-    
-
+    @Override
+    public void run(Peer peer) {
+        this.messageReceiver = new BackupReceiver(peer);
+        peer.getScheduler().execute(this.messageReceiver);
+    }
 }
