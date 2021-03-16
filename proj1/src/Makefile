@@ -1,6 +1,6 @@
 
 HOSTNAME = 225.10.10.10
-MC_PORT = 8010
+MC_PORT = 8013
 MDB_PORT = 8011
 MDR_PORT = 8012
 
@@ -8,7 +8,7 @@ all:
 	javac g04/*.java
 	
 clean:
-	rm g04/*.class && rm g04/*/*.class && rm g04/*/*/*.class
+	rm g04/*.class && rm g04/*/*.class && rm g04/*/*/*.class && rm -r g04/chunks/*
 
 rmi:
 	rmiregistry &
@@ -22,6 +22,7 @@ peers: all rmi
 	java g04.Peer 1.0 0 peer0 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 1 peer1 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+	java g04.Peer 1.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 
 backup: 
-	java g04.TestApp peer0 BACKUP Makefile 3
+	java g04.TestApp peer0 BACKUP Makefile 4

@@ -28,7 +28,6 @@ public class SFile implements Serializable {
     }
 
     public ArrayList<Chunk> generateChunks() throws IOException{
-        System.out.println("Generating chunks");
 
         // Check file size
         if(this.file.length() >= Utils.MAX_FILE){

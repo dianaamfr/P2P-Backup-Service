@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 
 import g04.Peer;
-import g04.channel.message.ControlReceiver;
+import g04.channel.receivers.ControlReceiver;
 import g04.storage.ChunkKey;
 
 public class ControlChannel extends Channel {

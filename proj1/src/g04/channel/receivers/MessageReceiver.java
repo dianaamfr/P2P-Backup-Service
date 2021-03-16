@@ -1,8 +1,5 @@
-package g04.channel.message;
+package g04.channel.receivers;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import g04.Peer;

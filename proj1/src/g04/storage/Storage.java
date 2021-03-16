@@ -21,7 +21,7 @@ public class Storage {
                                                                         // chunks
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for
                                                                                // backed up chunks
-    private ArrayList<SFile> storedFiles; // To retrieve information about files which the peer has initiated a backup
+    private ConcurrentHashMap<String, SFile> storedFiles; // To retrieve information about files which the peer has initiated a backup
                                           // for
 
     public Storage() throws IOException {
@@ -29,11 +29,12 @@ public class Storage {
 
         this.storedChunks = new ConcurrentHashMap<>();
         this.backupConfirmations = new ConcurrentHashMap<>();
-        this.storedFiles = new ArrayList<>();
+        this.storedFiles = new ConcurrentHashMap<>();
     }
 
     public void store(SFile file) throws IOException {
-        this.storedFiles.add(file);
+        // Confirm if it is the best alternative
+        this.storedFiles.put(file.getFileId(), file);
 
         // Serialize file - not sure if we need to do this
         /*
@@ -66,7 +67,6 @@ public class Storage {
         ObjectInputStream oi = new ObjectInputStream(fi);
 
         Chunk c = (Chunk) oi.readObject();
-        System.out.println(c.toString());
         return (Chunk) oi.readObject();
     }
 
@@ -110,5 +110,9 @@ public class Storage {
             return this.storedChunks.get(chunkKey).size();
         }
         return -1;
+    }
+
+    public boolean hasFile(String fileId){
+        return this.storedFiles.containsKey(fileId);
     }
 }

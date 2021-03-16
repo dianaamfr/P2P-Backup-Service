@@ -2,7 +2,7 @@ package g04.channel;
 
 import g04.Peer;
 import g04.Utils;
-import g04.channel.message.MessageReceiver;
+import g04.channel.receivers.MessageReceiver;
 
 import java.io.IOException;
 import java.net.DatagramPacket;

@@ -13,9 +13,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
-import g04.channel.PutChunkHandler;
+import g04.channel.handlers.BackupHandler;
 import g04.storage.Chunk;
-import g04.storage.ChunkKey;
 import g04.storage.SFile;
 import g04.storage.Storage;
 
@@ -79,6 +78,7 @@ public class Peer implements IRemote {
 
         System.out.println("Peer with id " + Utils.PEER_ID + " registered to service with name " + peerAp);
 
+        // Initate Channels
         channelAggregator.run(peer);
 
     }
@@ -92,9 +92,11 @@ public class Peer implements IRemote {
 
             ArrayList<Chunk> chunks = file.generateChunks();
 
+            // Send putchunk message
             DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0));
             
-            scheduler.execute(new PutChunkHandler(this, packet, chunks.get(0).getChunkKey(), replicationDegree));
+            // Get confirmation messages or resend putchunk
+            scheduler.execute(new BackupHandler(this, packet, chunks.get(0).getChunkKey(), replicationDegree));
 
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 
 import g04.Peer;
-import g04.channel.message.BackupReceiver;
+import g04.channel.receivers.BackupReceiver;
 import g04.storage.Chunk;
 
 public class BackupChannel extends Channel {
