@@ -19,7 +19,7 @@ public class BackupChannel extends Channel {
             "PUTCHUNK", 
             senderId, 
             chunk.getFileId(), 
-            new String[]{Integer.toString(chunk.getChunkNum()), Integer.toString(chunk.getReplicationDegree()[0])}, 
+            new String[]{Integer.toString(chunk.getChunkNum()), Integer.toString(chunk.getReplicationDegree())}, 
             chunk.getBuffer());
 
         return new DatagramPacket(message, message.length, this.address, this.port);

@@ -1,14 +1,19 @@
 package g04.storage;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,8 +27,7 @@ public class Storage {
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for
                                                                                // backed up chunks
     private ConcurrentHashMap<String, SFile> storedFiles; // To retrieve information about files which the peer has initiated a backup
-                                          // for
-
+                                    
     public Storage() throws IOException {
         this.path = "g04/chunks/peer" + Utils.PEER_ID;
 
@@ -53,21 +57,37 @@ public class Storage {
         String fileDir = this.path + "/file" + chunk.getFileId();
         Files.createDirectories(Paths.get(fileDir));
 
-        FileOutputStream f = new FileOutputStream(new File(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser"));
-        ObjectOutputStream o = new ObjectOutputStream(f);
+        Path path = Paths.get(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser");
 
-        o.writeObject(chunk);
-        o.close();
-        f.close();
+        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(chunk);
+        oos.flush();
+        
+        ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
+        channel.write(buffer, 0);
+        channel.close();
+        oos.close();
+        baos.close();
     }
 
     public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
-        String chunkPath = this.path + "/file" + fileId + "/chunk-" + chunkNum + ".ser";
-        FileInputStream fi = new FileInputStream(new File(chunkPath));
-        ObjectInputStream oi = new ObjectInputStream(fi);
 
-        Chunk c = (Chunk) oi.readObject();
-        return (Chunk) oi.readObject();
+        Path path = Paths.get(this.path + "/file" + fileId + "/chunk-" + chunkNum + ".ser");
+
+        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+        
+        ByteBuffer buffer = ByteBuffer.allocate(Utils.CHUNK_SIZE*2);
+        
+        channel.read(buffer,0);
+
+        ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
+        ObjectInputStream ois = new ObjectInputStream(bais);
+        Chunk c = (Chunk) ois.readObject();
+
+        return c;
     }
 
     public int getConfirmedBackups(ChunkKey chunkKey) {
@@ -114,5 +134,9 @@ public class Storage {
 
     public boolean hasFile(String fileId){
         return this.storedFiles.containsKey(fileId);
+    }
+
+    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getStoredChunks(){
+        return this.storedChunks;
     }
 }

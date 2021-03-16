@@ -2,6 +2,7 @@ package g04.storage;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.HashSet;
 
 public class Chunk implements Serializable {
 
@@ -9,7 +10,8 @@ public class Chunk implements Serializable {
 	private int chunkNum;
     private String fileId;
     private byte[] buffer;
-    private int[] replicationDegree = new int[2]; // [1] desired; [2] perceived
+    private int replicationDegree;
+	private HashSet<Integer> peers;
 
 	private ChunkKey chunkKey;
     
@@ -17,8 +19,8 @@ public class Chunk implements Serializable {
         this.chunkNum = chunkNum;
         this.fileId = fileId;
         this.buffer = buffer;
-        this.replicationDegree[0] = replicationDegree;
-        this.replicationDegree[1] = 0;
+        this.replicationDegree = replicationDegree;
+        this.peers = new HashSet<>();
 
 		this.chunkKey = new ChunkKey(this.fileId, this.chunkNum);
     }
@@ -47,18 +49,18 @@ public class Chunk implements Serializable {
 		this.buffer = buffer;
 	}
 
-	public int[] getReplicationDegree() {
-		return replicationDegree;
+	public int getReplicationDegree() {
+		return this.replicationDegree;
 	}
 
-	public void setReplicationDegree(int[] replicationDegree) {
-		this.replicationDegree = replicationDegree;
+	public void setPeers(HashSet<Integer> peers) {
+		this.peers = peers;
 	}
 
 	@Override
 	public String toString() {
 		return "Chunk [chunkNum=" + chunkNum + ", fileId=" + fileId + ", replicationDegree="
-				+ Arrays.toString(replicationDegree) + "]";
+				+ this.replicationDegree + "]";
 	}
 
 	public ChunkKey getChunkKey() {
