@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import g04.Utils;
 
@@ -67,12 +68,16 @@ public class Storage {
         oos.flush();
         
         ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
-        channel.write(buffer, 0);
+        Future<Integer> operation = channel.write(buffer, 0);
+        while(!operation.isDone());
+
         channel.close();
         oos.close();
         baos.close();
     }
 
+    // http://tutorials.jenkov.com/java-nio/asynchronousfilechannel.html
+    // https://www.baeldung.com/java-nio2-async-file-channel
     public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
 
         Path path = Paths.get(this.path + "/file" + fileId + "/chunk-" + chunkNum + ".ser");
@@ -81,7 +86,11 @@ public class Storage {
         
         ByteBuffer buffer = ByteBuffer.allocate(Utils.CHUNK_SIZE*2);
         
-        channel.read(buffer,0);
+        Future<Integer> result = channel.read(buffer,0);
+
+        while (!result.isDone());
+        
+        buffer.flip();
 
         ByteArrayInputStream bais = new ByteArrayInputStream(buffer.array());
         ObjectInputStream ois = new ObjectInputStream(bais);

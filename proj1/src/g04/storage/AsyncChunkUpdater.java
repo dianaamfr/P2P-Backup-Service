@@ -22,6 +22,7 @@ public class AsyncChunkUpdater implements Runnable {
             ChunkKey key = entry.getKey();
             try {
                 Chunk chunk = storage.read(key.getFileId(), key.getChunkNum());
+                System.out.println(new String(chunk.getBuffer()));
                 chunk.setPeers(entry.getValue());
                 storage.store(chunk);
                 System.err.println("JA SOMOS" + chunk.getFileId() +  " " + chunk.getChunkNum());
