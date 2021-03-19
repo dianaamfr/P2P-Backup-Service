@@ -15,7 +15,7 @@ import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
 import g04.channel.handlers.BackupHandler;
-import g04.storage.AsyncChunkUpdater;
+import g04.storage.AsyncStorageUpdater;
 import g04.storage.Chunk;
 import g04.storage.SFile;
 import g04.storage.Storage;
@@ -31,7 +31,7 @@ public class Peer implements IRemote {
         this.storage = new Storage();
         this.scheduler = new ScheduledThreadPoolExecutor(50);
 
-        this.scheduler.scheduleWithFixedDelay(new AsyncChunkUpdater(this.storage),5000,5000,TimeUnit.MILLISECONDS);
+        this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage),5000,5000,TimeUnit.MILLISECONDS);
     }
 
     public static void main(String[] args) throws IOException {
@@ -97,11 +97,12 @@ public class Peer implements IRemote {
             ArrayList<Chunk> chunks = file.generateChunks();
 
             // Send putchunk message
-            DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0));
+            for (Chunk chunk : chunks) {
+                DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk);      
+                // Get confirmation messages or resend putchunk
+                scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));  
+            }
             
-            // Get confirmation messages or resend putchunk
-            scheduler.execute(new BackupHandler(this, packet, chunks.get(0).getChunkKey(), replicationDegree));
-
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {
             // Throw error message - file error
