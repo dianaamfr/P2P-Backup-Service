@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import g04.Utils;
@@ -17,14 +18,14 @@ public class SFile implements Serializable {
     private String fileId;
     private int replicationDegree;
     private File file;
-    private ConcurrentHashMap<Integer,ArrayList<String>> chunks; // Verificar se precisamos (já não temos na storage?)
+    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks
 
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
         this.fileName = fileName;
         this.replicationDegree = replicationDegree;
         this.fileId = Utils.generateHash(this.fileName);
-        this.chunks = new ConcurrentHashMap<>();
         this.file = new File(fileName);
+        this.backupConfirmations = new ConcurrentHashMap<>();
     }
 
     public ArrayList<Chunk> generateChunks() throws IOException{
@@ -48,16 +49,12 @@ public class SFile implements Serializable {
 
             Chunk chunk = new Chunk(i, this.fileId, buf, this.replicationDegree);
             chunks.add(chunk);
-
-            this.chunks.put(i, new ArrayList<>());
         }
 
         // File Size is multiple of the chunk size 
         if(this.file.length() % Utils.CHUNK_SIZE == 0){
             Chunk chunk = new Chunk(chunksNum, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
-
-            this.chunks.put(chunksNum, new ArrayList<>());
         }
 
         return chunks;
@@ -75,4 +72,30 @@ public class SFile implements Serializable {
         return replicationDegree;
     }
 
+    public int getConfirmedBackups(ChunkKey chunkKey) {
+
+        if (this.backupConfirmations.containsKey(chunkKey)) {
+            return this.backupConfirmations.get(chunkKey).size();
+        }
+
+        return 0;
+    }
+
+    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        HashSet<Integer> chunkPeers;
+        
+        if (this.backupConfirmations.containsKey(chunkKey)) {
+			chunkPeers = this.backupConfirmations.get(chunkKey);
+		} else {
+			chunkPeers = new HashSet<Integer>();
+		}
+
+        chunkPeers.add(serverId);
+        this.backupConfirmations.put(chunkKey, chunkPeers);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return this.fileName.equals(((SFile) obj).getFileName());
+    }
 }
