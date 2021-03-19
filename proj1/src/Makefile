@@ -8,7 +8,7 @@ all:
 	javac g04/*.java
 	
 clean:
-	rm g04/*.class && rm g04/*/*.class && rm g04/*/*/*.class && rm -r g04/chunks/*
+	rm g04/*.class && rm g04/*/*.class && rm g04/*/*/*.class
 
 rmi:
 	rmiregistry &
@@ -26,3 +26,6 @@ peers: all rmi
 
 backup: 
 	java g04.TestApp peer0 BACKUP Makefile 3
+
+delete:
+	rm -r g04/chunks/*

@@ -20,6 +20,10 @@ public class SFile implements Serializable {
     private File file;
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks
 
+    public SFile(String fileName) {
+        this.fileName = fileName;
+    }
+
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
         this.fileName = fileName;
         this.replicationDegree = replicationDegree;
@@ -49,12 +53,20 @@ public class SFile implements Serializable {
 
             Chunk chunk = new Chunk(i, this.fileId, buf, this.replicationDegree);
             chunks.add(chunk);
+
+            if (!this.backupConfirmations.containsKey(chunk.getChunkKey())){
+                this.backupConfirmations.put(chunk.getChunkKey(), new HashSet<Integer>());
+            }
         }
 
         // File Size is multiple of the chunk size 
         if(this.file.length() % Utils.CHUNK_SIZE == 0){
             Chunk chunk = new Chunk(chunksNum, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
+
+            if (!this.backupConfirmations.containsKey(chunk.getChunkKey())){
+                this.backupConfirmations.put(chunk.getChunkKey(), new HashSet<Integer>());
+            }
         }
 
         return chunks;
@@ -97,5 +109,9 @@ public class SFile implements Serializable {
     @Override
     public boolean equals(Object obj) {
         return this.fileName.equals(((SFile) obj).getFileName());
+    }
+
+    public ConcurrentHashMap getBackupConfirmations(){
+        return this.backupConfirmations;
     }
 }

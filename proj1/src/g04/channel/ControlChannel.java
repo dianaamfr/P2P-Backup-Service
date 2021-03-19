@@ -24,6 +24,16 @@ public class ControlChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
+    public DatagramPacket getChunkPacket(String protocolVersion, int senderId, ChunkKey chunkKey){
+        byte[] message = super.generateMessage(
+            protocolVersion, 
+            "GETCHUNK", 
+            senderId, 
+            chunkKey.getFileId(), 
+            new String[]{Integer.toString(chunkKey.getChunkNum())});
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
+    }
 
     @Override
     public void run(Peer peer) {

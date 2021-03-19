@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.concurrent.Future;
 
 import g04.Utils;
@@ -24,7 +24,8 @@ public class Storage implements Serializable {
 
     private static final long serialVersionUID = -3297985980735829122L;
     private String path;
-    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> storedChunks; // To store the chunks confirmations for stored
+    private ConcurrentHashMap<ChunkKey, Integer> storedChunks;
+    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; // To store the chunks confirmations for stored
                                                                         // chunks
     private ConcurrentHashMap<String, SFile> storedFiles; // To retrieve information about files which the peer has
                                                           // initiated a backup
@@ -32,8 +33,9 @@ public class Storage implements Serializable {
     public Storage() throws IOException {
         this.path = "g04/chunks/peer" + Utils.PEER_ID;
         this.storedChunks = new ConcurrentHashMap<>();
+        this.confirmedChunks = new ConcurrentHashMap<>();
         this.storedFiles = new ConcurrentHashMap<>();
-
+        
         try {
             File storage = new File(this.path + "/storage.ser");
             if (storage.exists()) {
@@ -52,6 +54,7 @@ public class Storage implements Serializable {
 
         this.path = s.path;
         this.storedChunks = s.storedChunks;
+        this.confirmedChunks = s.confirmedChunks;
         this.storedFiles = s.storedFiles;
     }
 
@@ -61,7 +64,7 @@ public class Storage implements Serializable {
     }
 
     public void store(Chunk chunk) throws IOException {
-        String fileDir = this.path + "/file" + chunk.getFileId();
+        String fileDir = this.path + "/file-" + chunk.getFileId();
         Files.createDirectories(Paths.get(fileDir));
 
         Path path = Paths.get(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser");
@@ -88,7 +91,7 @@ public class Storage implements Serializable {
     // https://www.baeldung.com/java-nio2-async-file-channel
     public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
 
-        Path path = Paths.get(this.path + "/file" + fileId + "/chunk-" + chunkNum + ".ser");
+        Path path = Paths.get(this.path + "/file-" + fileId + "/chunk-" + chunkNum + ".ser");
 
         AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
 
@@ -96,8 +99,8 @@ public class Storage implements Serializable {
 
         Future<Integer> result = channel.read(buffer, 0);
 
-        while (!result.isDone())
-            ;
+        while (!result.isDone()){
+        }
 
         buffer.flip();
 
@@ -109,31 +112,49 @@ public class Storage implements Serializable {
     }
 
     public void addChunk(ChunkKey chunkKey) {
-        HashSet<Integer> chunkPeers = new HashSet<Integer>();
-        this.storedChunks.put(chunkKey, chunkPeers);
+        this.storedChunks.put(chunkKey,1);
     }
 
     public void addStoredConfirmation(ChunkKey chunkKey, int serverId) {
-        if (this.storedChunks.containsKey(chunkKey) && serverId != Utils.PEER_ID) {
-            HashSet<Integer> chunkPeers = this.storedChunks.get(chunkKey);
-            chunkPeers.add(serverId);
-            this.storedChunks.put(chunkKey, chunkPeers);
+        if (serverId != Utils.PEER_ID) {
+
+            HashSet<Integer> peers;
+
+            if(!this.confirmedChunks.containsKey(chunkKey)){
+                peers = new HashSet<>();
+            }
+            else
+                peers = this.confirmedChunks.get(chunkKey);
+            
+            peers.add(serverId);
+            this.confirmedChunks.put(chunkKey, peers);
         }
     }
 
-    public int getConfirmedStoredChunks(ChunkKey chunkKey) {
-        if (this.storedChunks.containsKey(chunkKey)) {
-            return this.storedChunks.get(chunkKey).size();
-        }
-        return -1;
+    public boolean getStoredChunk(ChunkKey chunkKey) {
+        return this.storedChunks.containsKey(chunkKey);
     }
 
     public boolean hasFile(String fileId) {
         return this.storedFiles.containsKey(fileId);
     }
 
-    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getStoredChunks() {
-        return this.storedChunks;
+    public boolean hasFile(SFile file) {
+        return this.storedFiles.contains(file);
+    }
+
+    public SFile getFile(String fileName) {
+        
+        for(Object file : this.storedFiles.values().toArray()){
+            if(((SFile) file).getFileName().equals(fileName))
+                return (SFile) file;
+        }
+
+        return null;
+    }
+
+    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getConfirmedChunks() {
+        return this.confirmedChunks;
     }
 
     public int getConfirmedBackups(ChunkKey chunkKey) {
@@ -152,8 +173,8 @@ public class Storage implements Serializable {
         this.path = path;
     }
 
-    public void setStoredChunks(ConcurrentHashMap<ChunkKey, HashSet<Integer>> storedChunks) {
-        this.storedChunks = storedChunks;
+    public void setConfirmedChunks(ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks) {
+        this.confirmedChunks = confirmedChunks;
     }
 
     public ConcurrentHashMap<String, SFile> getStoredFiles() {

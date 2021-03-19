@@ -1,8 +1,10 @@
 package g04.channel;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
 
 import g04.Peer;
+import g04.storage.Chunk;
 
 public class RestoreChannel extends Channel{
 
@@ -10,10 +12,16 @@ public class RestoreChannel extends Channel{
         super(address, port);
     }
 
-    @Override
-    public void run(Peer peer) {
-        // TODO Auto-generated method stub
-        
+    public DatagramPacket chunkPacket(String protocolVersion, int senderId, Chunk chunk){
+        byte[] message = super.generateMessage(
+            protocolVersion, 
+            "CHUNK", 
+            senderId, 
+            chunk.getFileId(), 
+            new String[]{Integer.toString(chunk.getChunkNum())},
+            chunk.getBuffer());
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
     }
-    
+
 }

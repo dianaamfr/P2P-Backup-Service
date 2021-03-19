@@ -8,15 +8,19 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
+import g04.channel.RestoreChannel;
 import g04.channel.handlers.BackupHandler;
 import g04.storage.AsyncStorageUpdater;
 import g04.storage.Chunk;
+import g04.storage.ChunkKey;
 import g04.storage.SFile;
 import g04.storage.Storage;
 
@@ -26,12 +30,16 @@ public class Peer implements IRemote {
     private Storage storage;
     private ScheduledThreadPoolExecutor scheduler;
 
+    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles;
+
     public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
         this.storage = new Storage();
         this.scheduler = new ScheduledThreadPoolExecutor(50);
 
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage),5000,5000,TimeUnit.MILLISECONDS);
+
+        this.pendingRestoreFiles = new ConcurrentHashMap<>();
     }
 
     public static void main(String[] args) throws IOException {
@@ -88,7 +96,7 @@ public class Peer implements IRemote {
     }
 
     @Override
-    public String backup(String fileName, int replicationDegree) throws RemoteException {
+    public void backup(String fileName, int replicationDegree) throws RemoteException {
 
         try {
             SFile file = new SFile(fileName, replicationDegree);
@@ -98,7 +106,7 @@ public class Peer implements IRemote {
 
             // Send putchunk message
             for (Chunk chunk : chunks) {
-                DatagramPacket packet = getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk);      
+                DatagramPacket packet = this.getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk);      
                 // Get confirmation messages or resend putchunk
                 scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));  
             }
@@ -108,38 +116,49 @@ public class Peer implements IRemote {
             // Throw error message - file error
             e.printStackTrace();
         }
-
-        return null;
     }
 
     @Override
-    public String restore(String fileName) throws RemoteException {
-        // TODO Auto-generated method stub
+    public void restore(String fileName) throws RemoteException {
+        
+        try {   
+            SFile file;
+			if((file = storage.getFile(fileName)) != null){
 
-        return null;
+                this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
+
+                for(Object key : file.getBackupConfirmations().keySet().toArray()){
+                    
+                    DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, (ChunkKey) key);
+                    this.getControlChannel().sendMessage(packet);
+                }
+            }
+		} catch (Exception e) {
+		}
     }
 
     @Override
-    public String delete(String fileName) throws RemoteException {
+    public void delete(String fileName) throws RemoteException {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
-    public String reclaim(int diskSpace) throws RemoteException {
+    public void reclaim(int diskSpace) throws RemoteException {
         // TODO Auto-generated method stub
-        return null;
     }
 
     @Override
-    public String state() throws RemoteException {
+    public void state() throws RemoteException {
         // TODO Auto-generated method stub
-        return null;
     }
 
 
     public BackupChannel getBackupChannel() {
         return this.channelAggregator.getBackupChannel();
+    }
+
+    public RestoreChannel getRestoreChannel() {
+        return this.channelAggregator.getRestoreChannel();
     }
 
     public ControlChannel getControlChannel() {
@@ -152,5 +171,13 @@ public class Peer implements IRemote {
 
     public ScheduledThreadPoolExecutor getScheduler() {
         return scheduler;
+    }
+
+    public boolean isPendingRestore(String fileId){
+        return this.pendingRestoreFiles.containsKey(fileId);
+    }
+
+    public void addPendingChunk(Chunk chunk){
+        this.pendingRestoreFiles.get(chunk.getFileId()).add(chunk);
     }
 }

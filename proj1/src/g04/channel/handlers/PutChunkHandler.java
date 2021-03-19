@@ -28,7 +28,7 @@ public class PutChunkHandler implements Runnable {
         Storage storage = peer.getStorage();
 
         // If it hasn't stored the chunk yet
-        if (storage.getConfirmedStoredChunks(chunk.getChunkKey()) < 0) {
+        if (!storage.getStoredChunk(chunk.getChunkKey())) {
             try {
                 // Store the chunk
                 storage.store(chunk);
