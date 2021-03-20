@@ -2,7 +2,7 @@ package g04.storage;
 
 import java.io.Serializable;
 
-public class Chunk implements Serializable {
+public class Chunk implements Serializable, Comparable<Chunk> {
 
 	private static final long serialVersionUID = 328214701342162801L;
 	private int chunkNum;
@@ -57,4 +57,17 @@ public class Chunk implements Serializable {
 		return this.chunkKey;
 	}
 
+	@Override
+	public int compareTo(Chunk chunk) {
+		
+		if(this.chunkNum < chunk.getChunkNum())
+			return -1;
+		
+		if(this.chunkNum > chunk.getChunkNum())
+			return 1;
+
+		return 0;
+	}
+	
+	
 }

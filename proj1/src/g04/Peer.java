@@ -26,11 +26,13 @@ import g04.storage.Storage;
 
 public class Peer implements IRemote {
 
-    private ChannelAggregator channelAggregator;
-    private Storage storage;
+    private ChannelAggregator channelAggregator; // Aggregates the Control, Backup and Restore multicast channels
+    private Storage storage; // Stores data that must persist between executions
     private ScheduledThreadPoolExecutor scheduler;
 
-    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles;
+    // Restore
+    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; // For each file pending restore, keeps the restored chunks (initiator-peer)
+    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; // Keeps track of restore requests (non-iniator peers)
 
     public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
@@ -40,6 +42,7 @@ public class Peer implements IRemote {
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage),5000,5000,TimeUnit.MILLISECONDS);
 
         this.pendingRestoreFiles = new ConcurrentHashMap<>();
+        this.restoreRequests = new ConcurrentHashMap<>();
     }
 
     public static void main(String[] args) throws IOException {
@@ -123,17 +126,21 @@ public class Peer implements IRemote {
         
         try {   
             SFile file;
-			if((file = storage.getFile(fileName)) != null){
-
+            
+            // Verify if the file was backed up by this peer
+			if((file = storage.getFileByFileName(fileName)) != null){
+                // Add the file to the pending restore requests
                 this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
 
+                // Send GETCHUNK message for each chunk of the file
                 for(Object key : file.getBackupConfirmations().keySet().toArray()){
-                    
                     DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, (ChunkKey) key);
+                    
                     this.getControlChannel().sendMessage(packet);
                 }
             }
 		} catch (Exception e) {
+            System.err.println("File not found");
 		}
     }
 
@@ -173,11 +180,36 @@ public class Peer implements IRemote {
         return scheduler;
     }
 
+
     public boolean isPendingRestore(String fileId){
         return this.pendingRestoreFiles.containsKey(fileId);
     }
 
     public void addPendingChunk(Chunk chunk){
         this.pendingRestoreFiles.get(chunk.getFileId()).add(chunk);
+    }
+
+    public boolean isReadyToRestore(String fileId){
+        return this.pendingRestoreFiles.get(fileId).size() == this.storage.getFileNumChunks(fileId);
+    }
+
+    public HashSet<Chunk> getRestoredChunks(String fileId) {
+        return this.pendingRestoreFiles.get(fileId);
+    }
+
+    public void removePendingRestore(String fileId) {
+        this.pendingRestoreFiles.remove(fileId);
+    }
+
+    public boolean hasRestoreRequest(ChunkKey chunkKey){
+        return this.restoreRequests.containsKey(chunkKey);
+    }
+
+    public void addRestoreRequest(ChunkKey chunkKey){
+        this.restoreRequests.put(chunkKey, 1);
+    }
+
+    public void removeRestoreRequest(ChunkKey chunkKey){
+        this.restoreRequests.remove(chunkKey);
     }
 }

@@ -7,7 +7,7 @@ import g04.Utils;
 
 public abstract class MessageReceiver implements Runnable {
     
-    Peer peer;
+    protected Peer peer;
 
     public MessageReceiver(Peer peer) {
         this.peer = peer;

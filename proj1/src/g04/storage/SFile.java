@@ -18,7 +18,7 @@ public class SFile implements Serializable {
     private String fileId;
     private int replicationDegree;
     private File file;
-    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks
+    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks of the file
 
     public SFile(String fileName) {
         this.fileName = fileName;
@@ -111,7 +111,7 @@ public class SFile implements Serializable {
         return this.fileName.equals(((SFile) obj).getFileName());
     }
 
-    public ConcurrentHashMap getBackupConfirmations(){
+    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getBackupConfirmations(){
         return this.backupConfirmations;
     }
 }

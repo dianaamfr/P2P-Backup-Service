@@ -1,45 +1,51 @@
 package g04.channel.handlers;
 
-import java.io.IOException;
-import java.util.HashMap;
-
 import g04.Peer;
 import g04.Utils;
-import g04.channel.ControlChannel;
 import g04.channel.RestoreChannel;
 import g04.storage.Chunk;
+import g04.storage.ChunkKey;
 import g04.storage.Storage;
 
 public class GetChunkHandler implements Runnable {
 
     private Peer peer;
-    private HashMap<String, String> message;
+    private ChunkKey chunkKey;
 
-    public GetChunkHandler(Peer peer, HashMap<String, String> message) {
+    public GetChunkHandler(Peer peer, ChunkKey chunkKey) {
         this.peer = peer;
-        this.message = message;
+        this.chunkKey = chunkKey;
     }
 
     @Override
     public void run() {
 
-        // if(ver se peer ja tem o chunk)
-            // se tiver aborta
+        // If the chunk was already restored exit
+        if(!this.peer.hasRestoreRequest(this.chunkKey)){
+            System.out.println("Peer " + Utils.PEER_ID + " canceled CHUNK");
+            return;
+        }
         
-        Storage storage = peer.getStorage();
+        System.out.println("Peer " + Utils.PEER_ID + " sending CHUNK");
+        
+        Storage storage = this.peer.getStorage();
 
-        Chunk chunk;
 		try {
-			chunk = storage.read(message.get("FileId"), Integer.parseInt(message.get("ChunkNo")));
+			Chunk chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
+            System.out.println("Read chunk");
             
             // Send CHUNK message
-            RestoreChannel restoreChannel = peer.getRestoreChannel();
+            RestoreChannel restoreChannel = this.peer.getRestoreChannel();
     
             restoreChannel.sendMessage(restoreChannel.chunkPacket(
                 Utils.PROTOCOL_VERSION, 
                 Utils.PEER_ID,
                 chunk));
+
+            System.out.println("Peer " + Utils.PEER_ID + " CHUNK sent");
+
 		} catch (Exception e) {
 		}        
+
     }
 }

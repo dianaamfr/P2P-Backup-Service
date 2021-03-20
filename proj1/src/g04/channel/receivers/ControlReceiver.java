@@ -38,15 +38,15 @@ public class ControlReceiver extends MessageReceiver {
             HashMap<String, String> message = this.parseMessage(received);
 
             ChunkKey chunkKey = new ChunkKey(message.get("FileId"),Integer.parseInt(message.get("ChunkNo")));
+            Storage storage = this.peer.getStorage();
 
             switch (message.get("MessageType")) {
                 case "STORED":
                     
                     // Add peer confirmation for a chunk
-                    Storage storage = this.peer.getStorage();
                     storage.addStoredConfirmation(chunkKey, Integer.parseInt(message.get("SenderId")));
 
-                    // Add peer confirmation for a chunk of a file I backed up
+                    // Add peer confirmation for a chunk of a file I backed up (initiator-peer)
                     if(storage.hasFile(message.get("FileId"))){
                         storage.addBackupConfirmation(chunkKey, Integer.parseInt(message.get("SenderId")));
                     }
@@ -54,9 +54,11 @@ public class ControlReceiver extends MessageReceiver {
                     break;
                     
                 case "GETCHUNK":
-                    
-                    if(!message.get("SenderId").equals(Integer.toString(Utils.PEER_ID))){
-                        this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, message), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
+                    System.out.println("GETCHUNK received by peer " + Utils.PEER_ID + " from peer " + message.get("SenderId"));
+                    if(!message.get("SenderId").equals(Integer.toString(Utils.PEER_ID)) && storage.hasStoredChunk(chunkKey)){
+                        System.out.println("Peer " + Utils.PEER_ID + " has the requested chunk");
+                        this.peer.addRestoreRequest(chunkKey);
+                        this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
                     }
 
                 default:

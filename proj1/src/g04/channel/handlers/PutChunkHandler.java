@@ -25,10 +25,10 @@ public class PutChunkHandler implements Runnable {
         Chunk chunk = new Chunk(Integer.parseInt(message.get("ChunkNo")), message.get("FileId"),
         message.get("Body").getBytes(), Integer.parseInt(message.get("ReplicationDeg")));
 
-        Storage storage = peer.getStorage();
+        Storage storage = this.peer.getStorage();
 
         // If it hasn't stored the chunk yet
-        if (!storage.getStoredChunk(chunk.getChunkKey())) {
+        if (!storage.hasStoredChunk(chunk.getChunkKey())) {
             try {
                 // Store the chunk
                 storage.store(chunk);

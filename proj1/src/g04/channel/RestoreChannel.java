@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 
 import g04.Peer;
+import g04.channel.receivers.RestoreReceiver;
 import g04.storage.Chunk;
 
 public class RestoreChannel extends Channel{
@@ -22,6 +23,12 @@ public class RestoreChannel extends Channel{
             chunk.getBuffer());
 
         return new DatagramPacket(message, message.length, this.address, this.port);
+    }
+
+    @Override
+    public void run(Peer peer) {
+        this.messageReceiver = new RestoreReceiver(peer);
+        peer.getScheduler().execute(this.messageReceiver);   
     }
 
 }

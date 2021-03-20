@@ -27,5 +27,8 @@ peers: all rmi
 backup: 
 	java g04.TestApp peer0 BACKUP Makefile 3
 
+restore: 
+	java g04.TestApp peer0 RESTORE Makefile
+
 delete:
 	rm -r g04/chunks/*

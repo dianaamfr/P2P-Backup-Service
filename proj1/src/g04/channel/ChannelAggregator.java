@@ -19,20 +19,20 @@ public class ChannelAggregator {
     }
 
     public ControlChannel getControlChannel() {
-        return controlChannel;
+        return this.controlChannel;
     }
 
     public BackupChannel getBackupChannel() {
-        return backupChannel;
+        return this.backupChannel;
     }
 
     public RestoreChannel getRestoreChannel() {
-        return restoreChannel;
+        return this.restoreChannel;
     }
 
     public void run(Peer peer){
         this.backupChannel.run(peer);
-        //this.restoreChannel.run(peer);
+        this.restoreChannel.run(peer);
         this.controlChannel.run(peer);
     }
 }
