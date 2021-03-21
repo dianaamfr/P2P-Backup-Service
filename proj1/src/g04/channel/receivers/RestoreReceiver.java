@@ -51,11 +51,8 @@ public class RestoreReceiver extends MessageReceiver {
                 // Restore file if all chunks have been restored
                 if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
                     System.out.println("All chunks of a file ready");
-                    TreeSet<Chunk> orderedChunks = new TreeSet<Chunk>(
-                            this.peer.getRestoredChunks(chunkKey.getFileId()));
                     this.peer.getScheduler()
-                            .execute(new RestoreHandler(this.peer, chunkKey.getFileId(), orderedChunks));
-                    this.peer.removePendingRestore(chunkKey.getFileId());
+                            .execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
                 }
             }
             

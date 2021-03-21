@@ -139,8 +139,11 @@ public class Peer implements IRemote {
                     this.getControlChannel().sendMessage(packet);
                 }
             }
+            else{
+                throw new Exception("SFile is null");
+            }
 		} catch (Exception e) {
-            System.err.println("File not found");
+            System.err.println("File not found: " + e.getMessage());
 		}
     }
 

@@ -36,7 +36,7 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 	}
 
 	public byte[] getBuffer() {
-		return buffer;
+		return this.buffer;
 	}
 
 	public void setBuffer(byte[] buffer) {

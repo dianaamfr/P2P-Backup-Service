@@ -17,12 +17,11 @@ public abstract class MessageReceiver implements Runnable {
     public abstract void run();
 
     public HashMap<String,String> parseMessage(String message){
-        
+
         HashMap<String,String> parsed = new HashMap<>();
         String[] args = message.split(" ");
-        int crlf = message.indexOf(Utils.CRLF + Utils.CRLF, 0);
+        int crlf = message.indexOf(Utils.CRLF + Utils.CRLF, 0) + 4;
         String body = message.substring(crlf);
-
 
         parsed.put("Version", args[0]);
         parsed.put("MessageType", args[1]);

@@ -1,6 +1,7 @@
 package g04.channel.handlers;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 import g04.Peer;
@@ -23,7 +24,7 @@ public class PutChunkHandler implements Runnable {
     public void run() {
         
         Chunk chunk = new Chunk(Integer.parseInt(message.get("ChunkNo")), message.get("FileId"),
-        message.get("Body").getBytes(), Integer.parseInt(message.get("ReplicationDeg")));
+        message.get("Body").getBytes(StandardCharsets.US_ASCII), Integer.parseInt(message.get("ReplicationDeg")));
 
         Storage storage = this.peer.getStorage();
 
@@ -31,6 +32,9 @@ public class PutChunkHandler implements Runnable {
         if (!storage.hasStoredChunk(chunk.getChunkKey())) {
             try {
                 // Store the chunk
+
+                System.out.println("LEEEEEEEEEEEEEEEEEEEEEENGHT " + message.get("Body").length() + "  " + message.get("Body").getBytes(StandardCharsets.US_ASCII).length);
+
                 storage.store(chunk);
                 storage.addChunk(chunk.getChunkKey());
             } catch (IOException e) {

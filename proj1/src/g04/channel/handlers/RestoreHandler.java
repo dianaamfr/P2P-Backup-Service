@@ -11,19 +11,23 @@ public class RestoreHandler implements Runnable {
     private String fileId;
     private TreeSet<Chunk> chunks;
 
-     public RestoreHandler(Peer peer, String fileId, TreeSet<Chunk> chunks) {
+     public RestoreHandler(Peer peer, String fileId) {
         this.peer = peer;
         this.fileId = fileId;
-        this.chunks = chunks;
+
+        this.chunks = new TreeSet<Chunk>(
+            this.peer.getRestoredChunks(this.fileId));
     }
     
-
     @Override
     public void run() {
         try {
-            System.out.println("Storing");
-            this.peer.getStorage().storeRestored(this.fileId, chunks);
+            this.peer.removePendingRestore(this.fileId);
+            System.out.println("Storing");    
+            this.peer.getStorage().storeRestored(this.fileId, this.chunks);
         } catch (IOException e) {
+
+            System.out.println(e.getMessage());
         }
     }
 }

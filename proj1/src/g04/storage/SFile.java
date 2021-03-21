@@ -18,6 +18,7 @@ public class SFile implements Serializable {
     private String fileId;
     private int replicationDegree;
     private File file;
+    private long fileSize;
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks of the file
 
     public SFile(String fileName) {
@@ -25,17 +26,18 @@ public class SFile implements Serializable {
     }
 
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
-        this.fileName = fileName;
-        this.replicationDegree = replicationDegree;
-        this.fileId = Utils.generateHash(this.fileName);
         this.file = new File(fileName);
+        this.fileName = this.file.getName();
+        this.fileId = Utils.generateHash(this.file);
+        this.fileSize = this.file.length();
+        this.replicationDegree = replicationDegree;
         this.backupConfirmations = new ConcurrentHashMap<>();
     }
 
     public ArrayList<Chunk> generateChunks() throws IOException{
 
         // Check file size
-        if(this.file.length() >= Utils.MAX_FILE){
+        if(this.fileSize >= Utils.MAX_FILE){
             throw new IOException("Max File Size Exception");
         }
         
@@ -60,7 +62,7 @@ public class SFile implements Serializable {
         }
 
         // File Size is multiple of the chunk size 
-        if(this.file.length() % Utils.CHUNK_SIZE == 0){
+        if(this.fileSize % Utils.CHUNK_SIZE == 0){
             Chunk chunk = new Chunk(chunksNum, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
 
@@ -91,6 +93,10 @@ public class SFile implements Serializable {
         }
 
         return 0;
+    }
+
+    public long getFileSize(){
+        return this.fileSize;
     }
 
     public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
