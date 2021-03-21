@@ -2,8 +2,6 @@ package g04.channel.receivers;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import g04.Peer;
@@ -17,7 +15,7 @@ public class BackupReceiver extends MessageReceiver {
     }
 
     @Override
-    public void run() {
+    public void run(){
 
         while (true) {
 
@@ -27,18 +25,15 @@ public class BackupReceiver extends MessageReceiver {
 
             try {
                 this.peer.getBackupChannel().getSocket().receive(packet);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            String received = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.US_ASCII);
-
-            HashMap<String, String> message = this.parseMessage(received);
+            Message message = this.parseMessage(packet);
 
             // Receive Putchunk - don't store his own chunks
-            if (message.get("MessageType").equals("PUTCHUNK")
-                    && !message.get("SenderId").equals(Integer.toString(Utils.PEER_ID))) {
+            if (message.getMessageType().equals("PUTCHUNK")
+                    && (message.getSenderId() != Utils.PEER_ID)) {
                     this.peer.getScheduler().schedule(new PutChunkHandler(this.peer, message), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
             }
         }

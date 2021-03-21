@@ -36,7 +36,7 @@ public abstract class Channel {
         builder.append(" ");
         builder.append(operation);
         builder.append(" ");
-        builder.append(senderId);
+        builder.append(Integer.toString(senderId));
         builder.append(" ");
         builder.append(fileId);
         for (String op : optional) {
@@ -67,7 +67,7 @@ public abstract class Channel {
         try {
             this.socket.send(packet);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Failed to send packet");
         }
     }
 

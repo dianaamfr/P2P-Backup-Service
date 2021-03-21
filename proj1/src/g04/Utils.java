@@ -14,6 +14,8 @@ public class Utils {
     public static int PEER_ID;
 
     public final static String CRLF = "\r\n";
+    public final static byte CR = 0xD;
+    public final static byte LF = 0xA;
     
     public final static int CHUNK_SIZE = 64000;
     public final static int MAX_CHUNKS = 1000000;

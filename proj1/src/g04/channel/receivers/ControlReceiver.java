@@ -33,30 +33,26 @@ public class ControlReceiver extends MessageReceiver {
                 e.printStackTrace();
             }
 
-            String received = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.US_ASCII);
+            Message message = this.parseMessage(packet);
 
-            HashMap<String, String> message = this.parseMessage(received);
-
-            ChunkKey chunkKey = new ChunkKey(message.get("FileId"),Integer.parseInt(message.get("ChunkNo")));
+            ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
             Storage storage = this.peer.getStorage();
 
-            switch (message.get("MessageType")) {
+            switch (message.getMessageType()) {
                 case "STORED":
                     
                     // Add peer confirmation for a chunk
-                    storage.addStoredConfirmation(chunkKey, Integer.parseInt(message.get("SenderId")));
+                    storage.addStoredConfirmation(chunkKey, message.getSenderId());
 
                     // Add peer confirmation for a chunk of a file I backed up (initiator-peer)
-                    if(storage.hasFile(message.get("FileId"))){
-                        storage.addBackupConfirmation(chunkKey, Integer.parseInt(message.get("SenderId")));
+                    if(storage.hasFile(message.getFileId())){
+                        storage.addBackupConfirmation(chunkKey, message.getSenderId());
                     }
 
                     break;
                     
                 case "GETCHUNK":
-                    System.out.println("GETCHUNK received by peer " + Utils.PEER_ID + " from peer " + message.get("SenderId"));
-                    if(!message.get("SenderId").equals(Integer.toString(Utils.PEER_ID)) && storage.hasStoredChunk(chunkKey)){
-                        System.out.println("Peer " + Utils.PEER_ID + " has the requested chunk");
+                    if((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)){
                         this.peer.addRestoreRequest(chunkKey);
                         this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
                     }

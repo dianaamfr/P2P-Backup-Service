@@ -28,7 +28,7 @@ backup:
 	java g04.TestApp peer0 BACKUP Makefile 3
 
 backup1: 
-	java g04.TestApp peer0 BACKUP g04/test/IART_Lecture2b_SolvingSearch.pdf 3
+	java g04.TestApp peer0 BACKUP g04/test/iart.pdf 3
 
 backup2: 
 	java g04.TestApp peer0 BACKUP g04/test/README.md 3
@@ -42,11 +42,17 @@ backup4:
 backup5: 
 	java g04.TestApp peer0 BACKUP g04/test/login-tog.png 3
 
+backup6: 
+	java g04.TestApp peer1 BACKUP g04/test/test6.pdf 3
+
+backup7: 
+	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3
+
 restore: 
 	java g04.TestApp peer0 RESTORE Makefile
 
 restore1: 
-	java g04.TestApp peer0 RESTORE IART_Lecture2b_SolvingSearch.pdf
+	java g04.TestApp peer0 RESTORE iart.pdf
 
 restore2: 
 	java g04.TestApp peer0 RESTORE README.md
@@ -59,6 +65,13 @@ restore4:
 
 restore5: 
 	java g04.TestApp peer0 RESTORE login-tog.png
+
+restore6: 
+	java g04.TestApp peer1 RESTORE test6.pdf
+
+restore7: 
+	java g04.TestApp peer1 RESTORE test7.mp3
+
 
 delete:
 	rm -r g04/output/*

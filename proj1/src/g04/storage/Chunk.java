@@ -1,6 +1,7 @@
 package g04.storage;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class Chunk implements Serializable, Comparable<Chunk> {
 
@@ -68,6 +69,45 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 
 		return 0;
 	}
+	
+	// Check hashCode and equals - auto generated to use Chunk HashSet
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(buffer);
+		result = prime * result + ((chunkKey == null) ? 0 : chunkKey.hashCode());
+		result = prime * result + chunkNum;
+		result = prime * result + ((fileId == null) ? 0 : fileId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Chunk other = (Chunk) obj;
+		if (!Arrays.equals(buffer, other.buffer))
+			return false;
+		if (chunkKey == null) {
+			if (other.chunkKey != null)
+				return false;
+		} else if (!chunkKey.equals(other.chunkKey))
+			return false;
+		if (chunkNum != other.chunkNum)
+			return false;
+		if (fileId == null) {
+			if (other.fileId != null)
+				return false;
+		} else if (!fileId.equals(other.fileId))
+			return false;
+		return true;
+	}
+
 	
 	
 }

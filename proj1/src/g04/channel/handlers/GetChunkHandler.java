@@ -22,17 +22,13 @@ public class GetChunkHandler implements Runnable {
 
         // If the chunk was already restored exit
         if(!this.peer.hasRestoreRequest(this.chunkKey)){
-            System.out.println("Peer " + Utils.PEER_ID + " canceled CHUNK");
             return;
         }
-        
-        System.out.println("Peer " + Utils.PEER_ID + " sending CHUNK");
         
         Storage storage = this.peer.getStorage();
 
 		try {
 			Chunk chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
-            System.out.println("Read chunk");
             
             // Send CHUNK message
             RestoreChannel restoreChannel = this.peer.getRestoreChannel();
@@ -42,7 +38,7 @@ public class GetChunkHandler implements Runnable {
                 Utils.PEER_ID,
                 chunk));
 
-            System.out.println("Peer " + Utils.PEER_ID + " CHUNK sent");
+            System.out.println("Peer " + Utils.PEER_ID + ": sent CHUNK " + chunk.getChunkNum());
 
 		} catch (Exception e) {
 		}        

@@ -34,33 +34,27 @@ public class RestoreReceiver extends MessageReceiver {
                 e.printStackTrace();
             }
 
-            
-            String received = new String(packet.getData(), 0, packet.getLength(), StandardCharsets.US_ASCII);
-            
-            HashMap<String, String> message = this.parseMessage(received);
+            Message message = this.parseMessage(packet);
 
+            ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
-            ChunkKey chunkKey = new ChunkKey(message.get("FileId"), Integer.parseInt(message.get("ChunkNo")));
-        
             // Receive CHUNK for initiator-peer
             if (this.peer.isPendingRestore(chunkKey.getFileId())) {
-                System.out.println("Initiator Peer received the requested chunk");
-                this.peer.addPendingChunk(
-                        new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.get("Body").getBytes(), 0));
+                System.out.println("Initiator: received CHUNK " +  message.getChunkNo());
+                this.peer
+                        .addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
 
                 // Restore file if all chunks have been restored
                 if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
                     System.out.println("All chunks of a file ready");
-                    this.peer.getScheduler()
-                            .execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
+                    this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
                 }
             }
-            
+
             // Receive CHUNK for other peers
-            if (!message.get("SenderId").equals(Integer.toString(Utils.PEER_ID))
-                    && this.peer.getStorage().hasStoredChunk(chunkKey) && this.peer.hasRestoreRequest(chunkKey)) {
-                System.out.println("Peer " + Utils.PEER_ID + " listened chunk from peer " + message.get("SenderId") + ". Remove chunk from restore requests!");        
-                this.peer.removeRestoreRequest(chunkKey);     
+            if ((message.getSenderId() != Utils.PEER_ID) && this.peer.getStorage().hasStoredChunk(chunkKey)
+                    && this.peer.hasRestoreRequest(chunkKey)) {
+                this.peer.removeRestoreRequest(chunkKey);
             }
         }
     }
