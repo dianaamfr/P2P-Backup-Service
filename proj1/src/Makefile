@@ -27,8 +27,40 @@ peers: all rmi
 backup: 
 	java g04.TestApp peer0 BACKUP Makefile 3
 
+backup1: 
+	java g04.TestApp peer0 BACKUP g04/test/IART_Lecture2b_SolvingSearch.pdf 3
+
+backup2: 
+	java g04.TestApp peer0 BACKUP g04/test/README.md 3
+
+backup3: 
+	java g04.TestApp peer0 BACKUP g04/test/SDIS_2017_2018_Hints_for_Concurrency_in_Project_1.pdf 3
+
+backup4: 
+	java g04.TestApp peer0 BACKUP g04/test/Texto_01.pdf 3
+
+backup5: 
+	java g04.TestApp peer0 BACKUP g04/test/login-tog.png 3
+
 restore: 
 	java g04.TestApp peer0 RESTORE Makefile
 
+restore1: 
+	java g04.TestApp peer0 RESTORE IART_Lecture2b_SolvingSearch.pdf
+
+restore2: 
+	java g04.TestApp peer0 RESTORE README.md
+
+restore3: 
+	java g04.TestApp peer0 RESTORE SDIS_2017_2018_Hints_for_Concurrency_in_Project_1.pdf
+
+restore4: 
+	java g04.TestApp peer0 RESTORE Texto_01.pdf
+
+restore5: 
+	java g04.TestApp peer0 RESTORE login-tog.png
+
 delete:
-	rm -r g04/chunks/*
+	rm -r g04/output/*
+
+killall: kill clean delete
