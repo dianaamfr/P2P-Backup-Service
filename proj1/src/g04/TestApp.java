@@ -37,7 +37,7 @@ class TestApp {
                         usage();
                         return;
                     }
-                    stub.restore(args[2]);
+                    stub.delete(args[2]);
                     break;
                 case "RECLAIM":
                     if(args.length != 3){

@@ -35,6 +35,17 @@ public class ControlChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
+    public DatagramPacket getDeletePacket(String protocolVersion, int senderId, String fileId){
+        byte[] message = super.generateMessage(
+            protocolVersion, 
+            "DELETE", 
+            senderId, 
+            fileId,
+            new String[0]);
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
+    }
+
     @Override
     public void run(Peer peer) {
         this.messageReceiver = new ControlReceiver(peer);

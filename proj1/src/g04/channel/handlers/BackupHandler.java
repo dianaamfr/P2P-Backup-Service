@@ -1,5 +1,6 @@
 package g04.channel.handlers;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.util.concurrent.TimeUnit;
 
@@ -38,7 +39,11 @@ public class BackupHandler implements Runnable {
     
             // Send PutChunk message
             System.out.println("PUTCHUNK " + chunkKey.getChunkNum() + " try " + this.tries);
-            this.peer.getBackupChannel().sendMessage(packet);
+            try {
+				this.peer.getBackupChannel().getSocket().send(packet);
+			} catch (IOException e) {
+                System.err.println("Failed to send PUTCHUNK " + chunkKey.getChunkNum());
+			}
 
             // Wait for confirmation
 			this.peer.getScheduler().schedule(new BackupHandler(this.peer, this.packet, this.chunkKey, 

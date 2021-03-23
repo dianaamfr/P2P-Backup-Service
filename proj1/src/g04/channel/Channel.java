@@ -63,11 +63,12 @@ public abstract class Channel {
         return message;
     }
 
-    public void sendMessage(DatagramPacket packet) {
+    public void sendMessage(DatagramPacket packet) throws IOException {
         try {
             this.socket.send(packet);
         } catch (IOException e) {
-            System.err.println("Failed to send packet");
+            System.err.println("Failed to send packet. Trying again");
+            this.socket.send(packet);
         }
     }
 

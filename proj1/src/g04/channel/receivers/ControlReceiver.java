@@ -2,12 +2,11 @@ package g04.channel.receivers;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 import g04.Peer;
 import g04.Utils;
+import g04.channel.handlers.DeleteHandler;
 import g04.channel.handlers.GetChunkHandler;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
@@ -34,13 +33,13 @@ public class ControlReceiver extends MessageReceiver {
             }
 
             Message message = this.parseMessage(packet);
+            Storage storage = this.peer.getStorage();
 
             ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
-            Storage storage = this.peer.getStorage();
 
             switch (message.getMessageType()) {
                 case "STORED":
-                    
+
                     // Add peer confirmation for a chunk
                     storage.addStoredConfirmation(chunkKey, message.getSenderId());
 
@@ -56,7 +55,10 @@ public class ControlReceiver extends MessageReceiver {
                         this.peer.addRestoreRequest(chunkKey);
                         this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
                     }
-
+                    break;
+                case "DELETE":
+                       this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
+                    break;
                 default:
                     break;
             }

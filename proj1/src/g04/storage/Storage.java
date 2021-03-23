@@ -4,7 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -28,8 +27,7 @@ public class Storage implements Serializable {
     private String path;
     private ConcurrentHashMap<ChunkKey, Integer> storedChunks; // Stored Chunks
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; // To store the chunks confirmations for
-                                                                           // stored
-                                                                           // chunks
+                                                                           // stored chunks
     private ConcurrentHashMap<String, SFile> backupFiles; // To retrieve information about files which the peer has
                                                           // initiated a backup for (initiator peer)
 
@@ -101,19 +99,20 @@ public class Storage implements Serializable {
 
         System.out.println(this.backupFiles.get(fileId).getFileSize());
         ByteBuffer buffer = ByteBuffer.allocate((int) this.backupFiles.get(fileId).getFileSize());
-        
-        for(Chunk chunk : restoredChunks) {
+
+        for (Chunk chunk : restoredChunks) {
             buffer.put(chunk.getBuffer());
         }
 
         buffer.flip();
 
         Future<Integer> operation = channel.write(buffer, 0);
-        
-        while (!operation.isDone()) {}
+
+        while (!operation.isDone()) {
+        }
 
         channel.close();
-        
+
         System.out.println("File " + this.backupFiles.get(fileId).getFileName() + " restored");
     }
 
@@ -186,6 +185,10 @@ public class Storage implements Serializable {
         return this.backupFiles.get(fileId).getBackupConfirmations().size();
     }
 
+    public ConcurrentHashMap<ChunkKey, Integer> getStoredChunks() {
+        return this.storedChunks;
+    }
+
     public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getConfirmedChunks() {
         return this.confirmedChunks;
     }
@@ -202,7 +205,7 @@ public class Storage implements Serializable {
         return this.path;
     }
 
-    public ConcurrentHashMap<String, SFile> getbackupFiles() {
+    public ConcurrentHashMap<String, SFile> getBackupFiles() {
         return this.backupFiles;
     }
 

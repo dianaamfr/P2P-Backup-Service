@@ -23,7 +23,7 @@ public class RestoreHandler implements Runnable {
     public void run() {
         try {
             this.peer.removePendingRestore(this.fileId);
-            System.out.println("Storing");    
+            System.out.println("Storing");
             this.peer.getStorage().storeRestored(this.fileId, this.chunks);
         } catch (IOException e) {
 

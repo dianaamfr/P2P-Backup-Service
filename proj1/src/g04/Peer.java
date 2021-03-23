@@ -31,7 +31,8 @@ public class Peer implements IRemote {
     private ScheduledThreadPoolExecutor scheduler;
 
     // Restore
-    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; // For each file pending restore, keeps the restored chunks (initiator-peer)
+    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; // For each file pending restore, keeps the
+                                                                           // restored chunks (initiator-peer)
     private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; // Keeps track of restore requests (non-iniator peers)
 
     public Peer(ChannelAggregator aggregator) throws IOException {
@@ -39,7 +40,7 @@ public class Peer implements IRemote {
         this.storage = new Storage();
         this.scheduler = new ScheduledThreadPoolExecutor(50);
 
-        this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage),5000,5000,TimeUnit.MILLISECONDS);
+        this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage), 5000, 5000, TimeUnit.MILLISECONDS);
 
         this.pendingRestoreFiles = new ConcurrentHashMap<>();
         this.restoreRequests = new ConcurrentHashMap<>();
@@ -109,11 +110,12 @@ public class Peer implements IRemote {
 
             // Send putchunk message
             for (Chunk chunk : chunks) {
-                DatagramPacket packet = this.getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk);      
+                DatagramPacket packet = this.getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
+                        chunk);
                 // Get confirmation messages or resend putchunk
-                scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));  
+                scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));
             }
-            
+
         } catch (NoSuchAlgorithmException e) {
         } catch (IOException e) {
             // Throw error message - file error
@@ -123,33 +125,56 @@ public class Peer implements IRemote {
 
     @Override
     public void restore(String fileName) throws RemoteException {
-        
-        try {   
+
+        try {
             SFile file;
-            
+
             // Verify if the file was backed up by this peer
-			if((file = storage.getFileByFileName(fileName)) != null){
+            if ((file = storage.getFileByFileName(fileName)) != null) {
                 // Add the file to the pending restore requests
                 this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
 
                 // Send GETCHUNK message for each chunk of the file
-                for(Object key : file.getBackupConfirmations().keySet().toArray()){
-                    DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, (ChunkKey) key);
-                    
+                for (ChunkKey key : file.getBackupConfirmations().keySet()) {
+                    DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION,
+                            Utils.PEER_ID, key);
+
+                    System.out.println("GETCHUNK " + key.getChunkNum());
                     this.getControlChannel().sendMessage(packet);
                 }
-            }
-            else{
+            } else {
                 throw new Exception("SFile is null");
             }
-		} catch (Exception e) {
+        } catch (IOException e) {
+            System.err.println("Failed to send GETCHUNK for file " + fileName);
+        } catch (Exception e) {
             System.err.println("File not found: " + e.getMessage());
-		}
+        }
     }
 
     @Override
     public void delete(String fileName) throws RemoteException {
-        // TODO Auto-generated method stub
+
+        try {
+            SFile file;
+
+            // Verify if the file was backed up by this peer
+            if ((file = storage.getFileByFileName(fileName)) != null) {
+
+                // Send DELETE message for each chunk of the file
+                DatagramPacket packet = this.getControlChannel().getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
+                        file.getFileId());
+
+                this.getControlChannel().sendMessage(packet);
+            } else {
+                throw new Exception("SFile is null");
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to send DELETE for file " + fileName);
+        } catch (Exception e) {
+            System.err.println("File not found: " + e.getMessage());
+        }
+
     }
 
     @Override
@@ -161,7 +186,6 @@ public class Peer implements IRemote {
     public void state() throws RemoteException {
         // TODO Auto-generated method stub
     }
-
 
     public BackupChannel getBackupChannel() {
         return this.channelAggregator.getBackupChannel();
@@ -175,7 +199,7 @@ public class Peer implements IRemote {
         return this.channelAggregator.getControlChannel();
     }
 
-    public Storage getStorage(){
+    public Storage getStorage() {
         return this.storage;
     }
 
@@ -183,16 +207,16 @@ public class Peer implements IRemote {
         return scheduler;
     }
 
-
-    public boolean isPendingRestore(String fileId){
+    public boolean isPendingRestore(String fileId) {
         return this.pendingRestoreFiles.containsKey(fileId);
     }
 
-    public void addPendingChunk(Chunk chunk){
+    public void addPendingChunk(Chunk chunk) {
         this.pendingRestoreFiles.get(chunk.getFileId()).add(chunk);
     }
 
-    public boolean isReadyToRestore(String fileId){
+    public boolean isReadyToRestore(String fileId) {
+        System.out.println(this.pendingRestoreFiles.get(fileId).size());
         return this.pendingRestoreFiles.get(fileId).size() == this.storage.getFileNumChunks(fileId);
     }
 
@@ -204,15 +228,15 @@ public class Peer implements IRemote {
         this.pendingRestoreFiles.remove(fileId);
     }
 
-    public boolean hasRestoreRequest(ChunkKey chunkKey){
+    public boolean hasRestoreRequest(ChunkKey chunkKey) {
         return this.restoreRequests.containsKey(chunkKey);
     }
 
-    public void addRestoreRequest(ChunkKey chunkKey){
+    public void addRestoreRequest(ChunkKey chunkKey) {
         this.restoreRequests.put(chunkKey, 1);
     }
 
-    public void removeRestoreRequest(ChunkKey chunkKey){
+    public void removeRestoreRequest(ChunkKey chunkKey) {
         this.restoreRequests.remove(chunkKey);
     }
 }

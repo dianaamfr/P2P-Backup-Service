@@ -42,10 +42,14 @@ public class PutChunkHandler implements Runnable {
         // Send STORED message
         ControlChannel controlChannel = peer.getControlChannel();
 
-        controlChannel.sendMessage(controlChannel.storedPacket(
-            Utils.PROTOCOL_VERSION, 
-            Utils.PEER_ID,
-            chunk.getChunkKey()));
+        try {
+			controlChannel.sendMessage(controlChannel.storedPacket(
+			    Utils.PROTOCOL_VERSION, 
+			    Utils.PEER_ID,
+			    chunk.getChunkKey()));
+		} catch (IOException e) {
+            System.err.println("Failed to send STORED " + chunk.getChunkNum());
+		}
         
     }
 }

@@ -26,9 +26,9 @@ public class GetChunkHandler implements Runnable {
         }
         
         Storage storage = this.peer.getStorage();
-
+        Chunk chunk = new Chunk(-1,null,null,-1);
 		try {
-			Chunk chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
+			chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
             
             // Send CHUNK message
             RestoreChannel restoreChannel = this.peer.getRestoreChannel();
@@ -41,7 +41,8 @@ public class GetChunkHandler implements Runnable {
             System.out.println("Peer " + Utils.PEER_ID + ": sent CHUNK " + chunk.getChunkNum());
 
 		} catch (Exception e) {
-		}        
+            System.out.println("Failed to send CHUNK " + chunk.getChunkNum());
+		}
 
     }
 }
