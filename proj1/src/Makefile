@@ -34,7 +34,7 @@ backup2:
 	java g04.TestApp peer0 BACKUP g04/test/README.md 3
 
 backup3: 
-	java g04.TestApp peer0 BACKUP g04/test/SDIS_2017_2018_Hints_for_Concurrency_in_Project_1.pdf 3
+	java g04.TestApp peer0 BACKUP g04/test/sdis.pdf 3
 
 backup4: 
 	java g04.TestApp peer0 BACKUP g04/test/Texto_01.pdf 3
@@ -58,7 +58,7 @@ restore2:
 	java g04.TestApp peer0 RESTORE README.md
 
 restore3: 
-	java g04.TestApp peer0 RESTORE SDIS_2017_2018_Hints_for_Concurrency_in_Project_1.pdf
+	java g04.TestApp peer0 RESTORE sdis.pdf
 
 restore4: 
 	java g04.TestApp peer0 RESTORE Texto_01.pdf
@@ -72,8 +72,31 @@ restore6:
 restore7: 
 	java g04.TestApp peer1 RESTORE test7.mp3
 
+delete: 
+	java g04.TestApp peer0 DELETE Makefile
 
-delete:
+delete1: 
+	java g04.TestApp peer0 DELETE iart.pdf
+
+delete2: 
+	java g04.TestApp peer0 DELETE README.md
+
+delete3: 
+	java g04.TestApp peer0 DELETE sdis.pdf
+
+delete4: 
+	java g04.TestApp peer0 DELETE Texto_01.pdf
+
+delete5: 
+	java g04.TestApp peer0 DELETE login-tog.png
+
+delete6: 
+	java g04.TestApp peer1 DELETE test6.pdf
+
+delete7: 
+	java g04.TestApp peer1 DELETE test7.mp3
+
+delout:
 	rm -r g04/output/*
 
-killall: kill clean delete
+killall: kill clean delout
