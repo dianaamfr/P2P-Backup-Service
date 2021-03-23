@@ -179,7 +179,7 @@ public class Peer implements IRemote {
 
     @Override
     public void reclaim(int diskSpace) throws RemoteException {
-        // TODO Auto-generated method stub
+        this.storage.setCapacity(diskSpace);
     }
 
     @Override

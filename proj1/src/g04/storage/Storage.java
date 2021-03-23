@@ -224,4 +224,8 @@ public class Storage implements Serializable {
 		return this.capacityUsed + size <= this.capacity;
 	}
 
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
+
 }
