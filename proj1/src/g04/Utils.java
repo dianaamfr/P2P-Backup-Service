@@ -22,6 +22,7 @@ public class Utils {
     public final static long MAX_FILE = 64000000000l;
     public static final int HEADER_SIZE = 128;
     public static final int PACKET_SIZE = CHUNK_SIZE + HEADER_SIZE;
+    public static final int MAX_CAPACITY = 100000; // 500000000;
 
     public final static int MAX_TRIES = 5;
     public final static int WAIT_TIME = 1000;

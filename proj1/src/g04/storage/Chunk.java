@@ -17,7 +17,7 @@ public class Chunk implements Serializable, Comparable<Chunk> {
         this.fileId = fileId;
         this.buffer = buffer;
         this.replicationDegree = replicationDegree;
-		this.chunkKey = new ChunkKey(this.fileId, this.chunkNum);
+		this.chunkKey = new ChunkKey(this.fileId, this.chunkNum, buffer.length);
     }
 
 	public int getChunkNum() {

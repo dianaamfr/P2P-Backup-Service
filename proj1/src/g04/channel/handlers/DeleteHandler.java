@@ -31,6 +31,7 @@ public class DeleteHandler implements Runnable {
                 if (key.getFileId().equals(fileId)) {
                     storage.getStoredChunks().remove(key);
                     storage.getConfirmedChunks().remove(key);
+                    storage.decreaseCapacity(key.getSize());
                 }
             }
     

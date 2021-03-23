@@ -30,12 +30,16 @@ public class Storage implements Serializable {
                                                                            // stored chunks
     private ConcurrentHashMap<String, SFile> backupFiles; // To retrieve information about files which the peer has
                                                           // initiated a backup for (initiator peer)
+    private int capacity;
+    private int capacityUsed;
 
     public Storage() throws IOException {
         this.path = "g04/output/peer" + Utils.PEER_ID;
         this.storedChunks = new ConcurrentHashMap<>();
         this.confirmedChunks = new ConcurrentHashMap<>();
         this.backupFiles = new ConcurrentHashMap<>();
+        this.capacity = Utils.MAX_CAPACITY;
+        this.capacityUsed = 0;
 
         try {
             File storage = new File(this.path + "/storage.ser");
@@ -57,6 +61,8 @@ public class Storage implements Serializable {
         this.storedChunks = s.storedChunks;
         this.confirmedChunks = s.confirmedChunks;
         this.backupFiles = s.backupFiles;
+        this.capacity = s.capacity;
+        this.capacityUsed = s.capacityUsed;
     }
 
     public void store(SFile file) throws IOException {
@@ -68,6 +74,7 @@ public class Storage implements Serializable {
         Files.createDirectories(Paths.get(fileDir));
 
         Path path = Paths.get(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser");
+        this.capacityUsed += chunk.getBuffer().length;
 
         AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE);
@@ -208,5 +215,13 @@ public class Storage implements Serializable {
     public ConcurrentHashMap<String, SFile> getBackupFiles() {
         return this.backupFiles;
     }
+
+    public void decreaseCapacity(int amount){
+        this.capacityUsed -= amount;
+    }
+
+	public boolean hasCapacity(int size) {
+		return this.capacityUsed + size <= this.capacity;
+	}
 
 }

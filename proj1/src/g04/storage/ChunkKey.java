@@ -7,10 +7,17 @@ public class ChunkKey implements Serializable {
 	private static final long serialVersionUID = -8070875167232670060L;
 	private String fileId;
     private int chunkNum;
+    private int size;
 
     public ChunkKey(String fileId, int chunkNum) {
         this.fileId = fileId;
         this.chunkNum = chunkNum;
+        this.size = 0;
+    } 
+
+    public ChunkKey(String fileId, int chunkNum, int size) {
+        this(fileId, chunkNum);
+        this.size = size;
     } 
 
     public boolean equals(Object o) {
@@ -24,11 +31,15 @@ public class ChunkKey implements Serializable {
     }
 
     public String getFileId() {
-        return fileId;
+        return this.fileId;
     }
 
     public int getChunkNum() {
-        return chunkNum;
+        return this.chunkNum;
+    }
+
+    public int getSize() {
+        return this.size;
     }
 
     @Override
