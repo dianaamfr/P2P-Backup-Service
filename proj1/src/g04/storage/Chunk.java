@@ -6,34 +6,20 @@ import java.util.Arrays;
 public class Chunk implements Serializable, Comparable<Chunk> {
 
 	private static final long serialVersionUID = 328214701342162801L;
-	private int chunkNum;
-    private String fileId;
     private byte[] buffer;
-    private int replicationDegree;
 	private ChunkKey chunkKey;
     
     public Chunk(int chunkNum, String fileId, byte[] buffer, int replicationDegree){
-        this.chunkNum = chunkNum;
-        this.fileId = fileId;
         this.buffer = buffer;
-        this.replicationDegree = replicationDegree;
-		this.chunkKey = new ChunkKey(this.fileId, this.chunkNum, buffer.length);
+		this.chunkKey = new ChunkKey(fileId, chunkNum, this.buffer.length, replicationDegree);
     }
 
 	public int getChunkNum() {
-		return chunkNum;
-	}
-
-	public void setChunkNum(int chunkNum) {
-		this.chunkNum = chunkNum;
+		return this.chunkKey.getChunkNum();
 	}
 
 	public String getFileId() {
-		return fileId;
-	}
-
-	public void setFileId(String fileId) {
-		this.fileId = fileId;
+		return this.chunkKey.getFileId();
 	}
 
 	public byte[] getBuffer() {
@@ -45,13 +31,13 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 	}
 
 	public int getReplicationDegree() {
-		return this.replicationDegree;
+		return this.chunkKey.getReplicationDegree();
 	}
 
 	@Override
 	public String toString() {
-		return "Chunk [chunkNum=" + chunkNum + ", fileId=" + fileId + ", replicationDegree="
-				+ this.replicationDegree + "]";
+		return "Chunk [chunkNum=" + this.getChunkNum() + ", fileId=" + this.getFileId() + ", replicationDegree="
+				+ this.getReplicationDegree() + "]";
 	}
 
 	public ChunkKey getChunkKey() {
@@ -61,10 +47,10 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 	@Override
 	public int compareTo(Chunk chunk) {
 		
-		if(this.chunkNum < chunk.getChunkNum())
+		if(this.getChunkNum() < chunk.getChunkNum())
 			return -1;
 		
-		if(this.chunkNum > chunk.getChunkNum())
+		if(this.getChunkNum() > chunk.getChunkNum())
 			return 1;
 
 		return 0;
@@ -77,8 +63,8 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 		int result = 1;
 		result = prime * result + Arrays.hashCode(buffer);
 		result = prime * result + ((chunkKey == null) ? 0 : chunkKey.hashCode());
-		result = prime * result + chunkNum;
-		result = prime * result + ((fileId == null) ? 0 : fileId.hashCode());
+		result = prime * result + this.getChunkNum();
+		result = prime * result + ((this.getFileId() == null) ? 0 : this.getFileId().hashCode());
 		return result;
 	}
 
@@ -98,12 +84,12 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 				return false;
 		} else if (!chunkKey.equals(other.chunkKey))
 			return false;
-		if (chunkNum != other.chunkNum)
+		if (this.getChunkNum() != other.getChunkNum())
 			return false;
-		if (fileId == null) {
-			if (other.fileId != null)
+		if (this.getFileId() == null) {
+			if (other.getFileId() != null)
 				return false;
-		} else if (!fileId.equals(other.fileId))
+		} else if (!this.getFileId().equals(other.getFileId()))
 			return false;
 		return true;
 	}

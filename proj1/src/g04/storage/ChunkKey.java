@@ -8,16 +8,19 @@ public class ChunkKey implements Serializable {
 	private String fileId;
     private int chunkNum;
     private int size;
+    private int replicationDegree;
 
     public ChunkKey(String fileId, int chunkNum) {
         this.fileId = fileId;
         this.chunkNum = chunkNum;
         this.size = 0;
+        this.replicationDegree = 0;
     } 
 
-    public ChunkKey(String fileId, int chunkNum, int size) {
+    public ChunkKey(String fileId, int chunkNum, int size, int replicationDegree) {
         this(fileId, chunkNum);
         this.size = size;
+        this.replicationDegree = replicationDegree;
     } 
 
     public boolean equals(Object o) {
@@ -40,6 +43,10 @@ public class ChunkKey implements Serializable {
 
     public int getSize() {
         return this.size;
+    }
+
+    public int getReplicationDegree() {
+        return this.replicationDegree;
     }
 
     @Override
