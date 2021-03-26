@@ -44,7 +44,7 @@ class TestApp {
                         usage();
                         return;
                     }
-                    stub.reclaim(Integer.parseInt(args[2]));
+                    stub.reclaim(Integer.parseInt(args[2])*1000);
                     break;
                 case "STATE":
                     if(args.length != 2){

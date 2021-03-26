@@ -34,7 +34,7 @@ backup2:
 	java g04.TestApp peer0 BACKUP g04/test/README.md 3
 
 backup3: 
-	java g04.TestApp peer0 BACKUP g04/test/sdis.pdf 3
+	java g04.TestApp peer0 BACKUP g04/test/sdis.pdf 2
 
 backup4: 
 	java g04.TestApp peer0 BACKUP g04/test/Texto_01.pdf 3
@@ -43,7 +43,7 @@ backup5:
 	java g04.TestApp peer0 BACKUP g04/test/login-tog.png 3
 
 backup6: 
-	java g04.TestApp peer1 BACKUP g04/test/test6.pdf 3
+	java g04.TestApp peer1 BACKUP g04/test/test6.pdf 2
 
 backup7: 
 	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3

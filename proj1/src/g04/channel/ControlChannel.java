@@ -46,6 +46,17 @@ public class ControlChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
+    public DatagramPacket getRemovedPacket(String protocolVersion, int senderId, ChunkKey chunkKey){
+        byte[] message = super.generateMessage(
+            protocolVersion, 
+            "REMOVED", 
+            senderId, 
+            chunkKey.getFileId(),
+            new String[]{Integer.toString(chunkKey.getChunkNum())});
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
+    }
+
     @Override
     public void run(Peer peer) {
         this.messageReceiver = new ControlReceiver(peer);

@@ -39,6 +39,8 @@ public class BackupHandler implements Runnable {
     
             // Send PutChunk message
             System.out.println("PUTCHUNK " + chunkKey.getChunkNum() + " try " + this.tries);
+            System.out.println("Peer " + Utils.PEER_ID + " confirmed = " + this.peer.getStorage().getConfirmedBackups(chunkKey) + " desired = " + replicationDegree);
+
             try {
 				this.peer.getBackupChannel().getSocket().send(packet);
 			} catch (IOException e) {

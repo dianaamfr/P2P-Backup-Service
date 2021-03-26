@@ -9,8 +9,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Future;
 
-import g04.Utils;
-
 public class AsyncStorageUpdater implements Runnable {
 
     private Storage storage;

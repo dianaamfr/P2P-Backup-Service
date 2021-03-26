@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import g04.Peer;
 import g04.Utils;
 import g04.channel.handlers.PutChunkHandler;
+import g04.storage.ChunkKey;
 
 public class BackupReceiver extends MessageReceiver {
 
@@ -34,6 +35,13 @@ public class BackupReceiver extends MessageReceiver {
             // Receive Putchunk - don't store his own chunks
             if (message.getMessageType().equals("PUTCHUNK")
                     && (message.getSenderId() != Utils.PEER_ID)) {
+
+                    ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
+
+                    if(this.peer.hasRemovedChunk(chunkKey)) {
+                        this.peer.deleteRemovedChunk(chunkKey);
+                    }
+
                     this.peer.getScheduler().schedule(new PutChunkHandler(this.peer, message), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
             }
         }

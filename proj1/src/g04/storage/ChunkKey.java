@@ -49,6 +49,10 @@ public class ChunkKey implements Serializable {
         return this.replicationDegree;
     }
 
+    public void setReplicationDegree(int replicationDegree) {
+        this.replicationDegree = replicationDegree;
+    }
+
     @Override
     public int hashCode() {
         return this.fileId.hashCode() + this.chunkNum;

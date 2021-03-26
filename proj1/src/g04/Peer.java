@@ -18,6 +18,7 @@ import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
 import g04.channel.RestoreChannel;
 import g04.channel.handlers.BackupHandler;
+import g04.channel.handlers.ReclaimHandler;
 import g04.storage.AsyncStorageUpdater;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
@@ -34,6 +35,9 @@ public class Peer implements IRemote {
     private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; // For each file pending restore, keeps the
                                                                            // restored chunks (initiator-peer)
     private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; // Keeps track of restore requests (non-iniator peers)
+    
+    private ConcurrentHashMap<ChunkKey, Integer> removedChunks; // Keeps track of removed chunks
+
 
     public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
@@ -44,6 +48,7 @@ public class Peer implements IRemote {
 
         this.pendingRestoreFiles = new ConcurrentHashMap<>();
         this.restoreRequests = new ConcurrentHashMap<>();
+        this.removedChunks = new ConcurrentHashMap<>();
     }
 
     public static void main(String[] args) throws IOException {
@@ -178,8 +183,9 @@ public class Peer implements IRemote {
     }
 
     @Override
-    public void reclaim(int diskSpace) throws RemoteException {
+    public void reclaim(int diskSpace){
         this.storage.setCapacity(diskSpace);
+        this.scheduler.execute(new ReclaimHandler(this));
     }
 
     @Override
@@ -206,6 +212,9 @@ public class Peer implements IRemote {
     public ScheduledThreadPoolExecutor getScheduler() {
         return scheduler;
     }
+
+
+    // Restore
 
     public boolean isPendingRestore(String fileId) {
         return this.pendingRestoreFiles.containsKey(fileId);
@@ -238,5 +247,19 @@ public class Peer implements IRemote {
 
     public void removeRestoreRequest(ChunkKey chunkKey) {
         this.restoreRequests.remove(chunkKey);
+    }
+
+
+    // Reclaim
+    public void addRemovedChunk(ChunkKey chunkKey) {
+        this.removedChunks.put(chunkKey, 1);
+    }
+
+    public boolean hasRemovedChunk(ChunkKey chunkKey) {
+        return this.removedChunks.containsKey(chunkKey);
+    }
+
+    public void deleteRemovedChunk(ChunkKey chunkKey) {
+        this.removedChunks.remove(chunkKey);
     }
 }

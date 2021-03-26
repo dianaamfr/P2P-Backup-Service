@@ -149,7 +149,7 @@ public class Storage implements Serializable {
     }
 
     public void addChunk(ChunkKey chunkKey) {
-        this.storedChunks.put(chunkKey, 1);
+        this.storedChunks.put(chunkKey, chunkKey.getReplicationDegree());
     }
 
     public void addStoredConfirmation(ChunkKey chunkKey, int serverId) {
@@ -165,6 +165,19 @@ public class Storage implements Serializable {
             peers.add(serverId);
             this.confirmedChunks.put(chunkKey, peers);
         }
+    }
+
+    public Integer removeStoredConfirmation(ChunkKey chunkKey, int serverId) {
+
+            if (this.confirmedChunks.containsKey(chunkKey)) {
+                HashSet<Integer> peers = this.confirmedChunks.get(chunkKey);
+                peers.remove(serverId);
+                this.confirmedChunks.put(chunkKey, peers);
+
+                return peers.size();
+            }
+
+        return -1;
     }
 
     public boolean hasStoredChunk(ChunkKey chunkKey) {
@@ -228,4 +241,11 @@ public class Storage implements Serializable {
         this.capacity = capacity;
     }
 
+    public boolean isFull(){
+        return this.capacity < this.capacityUsed;
+    }
+
+    public int getCapacity() {
+        return this.capacity;
+    }
 }
