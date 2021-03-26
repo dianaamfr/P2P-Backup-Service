@@ -1,7 +1,6 @@
 package g04.channel.handlers;
 
 import java.io.File;
-import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 import g04.Peer;
 import g04.Utils;

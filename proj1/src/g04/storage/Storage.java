@@ -66,7 +66,7 @@ public class Storage implements Serializable {
     }
 
     public void store(SFile file) throws IOException {
-        this.backupFiles.put(file.getFileId(), file);
+        this.backupFiles.putIfAbsent(file.getFileId(), file);
     }
 
     public void store(Chunk chunk) throws IOException {
@@ -153,14 +153,16 @@ public class Storage implements Serializable {
     }
 
     public void addStoredConfirmation(ChunkKey chunkKey, int serverId) {
+
         if (serverId != Utils.PEER_ID) {
 
             HashSet<Integer> peers;
 
             if (!this.confirmedChunks.containsKey(chunkKey)) {
                 peers = new HashSet<>();
-            } else
+            } else {
                 peers = this.confirmedChunks.get(chunkKey);
+            }
 
             peers.add(serverId);
             this.confirmedChunks.put(chunkKey, peers);
@@ -169,15 +171,15 @@ public class Storage implements Serializable {
 
     public Integer removeStoredConfirmation(ChunkKey chunkKey, int serverId) {
 
-            if (this.confirmedChunks.containsKey(chunkKey)) {
-                HashSet<Integer> peers = this.confirmedChunks.get(chunkKey);
-                peers.remove(serverId);
-                this.confirmedChunks.put(chunkKey, peers);
+        if (this.confirmedChunks.containsKey(chunkKey)) {
+            HashSet<Integer> peers = this.confirmedChunks.get(chunkKey);
+            peers.remove(serverId);
+            this.confirmedChunks.put(chunkKey, peers);
 
-                return peers.size();
-            }
+            return peers.size();
+        }
 
-        return -1;
+        return 0;
     }
 
     public boolean hasStoredChunk(ChunkKey chunkKey) {
@@ -221,6 +223,10 @@ public class Storage implements Serializable {
         this.backupFiles.get(chunkKey.getFileId()).addBackupConfirmation(chunkKey, serverId);
     }
 
+    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        return this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
+    }
+
     public String getPath() {
         return this.path;
     }
@@ -229,19 +235,19 @@ public class Storage implements Serializable {
         return this.backupFiles;
     }
 
-    public void decreaseCapacity(int amount){
+    public void decreaseCapacity(int amount) {
         this.capacityUsed -= amount;
     }
 
-	public boolean hasCapacity(int size) {
-		return this.capacityUsed + size <= this.capacity;
-	}
+    public boolean hasCapacity(int size) {
+        return this.capacityUsed + size <= this.capacity;
+    }
 
     public void setCapacity(int capacity) {
         this.capacity = capacity;
     }
 
-    public boolean isFull(){
+    public boolean isFull() {
         return this.capacity < this.capacityUsed;
     }
 

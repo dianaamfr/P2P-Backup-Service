@@ -112,6 +112,18 @@ public class SFile implements Serializable {
         this.backupConfirmations.put(chunkKey, chunkPeers);
     }
 
+    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        HashSet<Integer> chunkPeers;
+        if (this.backupConfirmations.containsKey(chunkKey)) {
+			chunkPeers = this.backupConfirmations.get(chunkKey);
+
+            chunkPeers.remove(serverId);
+            this.backupConfirmations.put(chunkKey, chunkPeers);
+            return chunkPeers.size();
+		}
+        return 0;
+    }
+
     @Override
     public boolean equals(Object obj) {
         return this.fileName.equals(((SFile) obj).getFileName());

@@ -41,15 +41,17 @@ public class ControlReceiver extends MessageReceiver {
             switch (message.getMessageType()) {
                 case "STORED":
 
+                System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId() + " for chunk " + chunkKey.getChunkNum()
+            + "conf= " + storage.getConfirmedChunks().get(chunkKey));
+      
                     // Add peer confirmation for a chunk
                     storage.addStoredConfirmation(chunkKey, message.getSenderId());
-
-                    // System.out.println(message.getFileId());
+                    
                     // Add peer confirmation for a chunk of a file I backed up (initiator-peer)
                     if(storage.hasFile(message.getFileId())){
                         storage.addBackupConfirmation(chunkKey, message.getSenderId());
-                        System.out.println("RECEIVED STORE CONFIRMATION FROM " + message.getSenderId() + " FOR CHUNK " + message.getChunkNo() + " BC " + storage.getConfirmedBackups(chunkKey));
                     }
+                    
 
                     break;
                     
@@ -66,17 +68,25 @@ public class ControlReceiver extends MessageReceiver {
 
                 case "REMOVED":
 
-                    int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
+                    if((message.getSenderId() != Utils.PEER_ID)){
+                        int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
+                    
+                        if(storage.hasFile(message.getFileId())){
+                            confirmations = storage.removeBackupConfirmation(chunkKey, message.getSenderId());
+                        }
 
-                    int replicationDegree  = storage.getStoredChunks().get(chunkKey);
+                        if(storage.hasStoredChunk(chunkKey)){
+                            int desiredReplicationDegree  = storage.getStoredChunks().get(chunkKey);
 
-                    if(storage.hasStoredChunk(chunkKey) && confirmations < replicationDegree){
-                        this.peer.addRemovedChunk(chunkKey);
-
-                        chunkKey.setReplicationDegree(replicationDegree);
-
-                        // Start PUTCHUNK protocol to ensure the desired replication degree
-                        this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);    
+                            if(confirmations < desiredReplicationDegree) {
+                                this.peer.addRemovedChunk(chunkKey);
+        
+                                chunkKey.setReplicationDegree(desiredReplicationDegree);
+        
+                                // Start PUTCHUNK protocol to ensure the desired replication degree
+                                //this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);    
+                            }
+                        }
                     }
                     
                     break;
