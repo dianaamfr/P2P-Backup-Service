@@ -26,7 +26,7 @@ public class GetChunkHandler implements Runnable {
         }
         
         Storage storage = this.peer.getStorage();
-        Chunk chunk = new Chunk(-1,null,null,-1);
+        Chunk chunk = new Chunk();
 		try {
 			chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
             

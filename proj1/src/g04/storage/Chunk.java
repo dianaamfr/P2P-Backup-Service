@@ -9,6 +9,11 @@ public class Chunk implements Serializable, Comparable<Chunk> {
     private byte[] buffer;
 	private ChunkKey chunkKey;
     
+	public Chunk(){
+		this.buffer = new byte[0];
+		this.chunkKey = new ChunkKey("",-1,0,0);
+	}
+
     public Chunk(int chunkNum, String fileId, byte[] buffer, int replicationDegree){
         this.buffer = buffer;
 		this.chunkKey = new ChunkKey(fileId, chunkNum, this.buffer.length, replicationDegree);
