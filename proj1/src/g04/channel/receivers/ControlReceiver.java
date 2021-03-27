@@ -38,11 +38,12 @@ public class ControlReceiver extends MessageReceiver {
 
             ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
+            // Process received message
             switch (message.getMessageType()) {
                 case "STORED":
 
                 System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId() + " for chunk " + chunkKey.getChunkNum()
-            + "conf= " + storage.getConfirmedChunks().get(chunkKey));
+                /*+ "conf= " + storage.getConfirmedChunks(chunkKey)*/);
       
                     // Add peer confirmation for a chunk
                     storage.addStoredConfirmation(chunkKey, message.getSenderId());

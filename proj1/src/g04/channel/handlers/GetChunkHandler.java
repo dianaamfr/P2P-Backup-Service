@@ -38,6 +38,8 @@ public class GetChunkHandler implements Runnable {
                 Utils.PEER_ID,
                 chunk));
 
+            this.peer.removeRestoreRequest(chunkKey);
+
             System.out.println("Peer " + Utils.PEER_ID + ": sent CHUNK " + chunk.getChunkNum());
 
 		} catch (Exception e) {

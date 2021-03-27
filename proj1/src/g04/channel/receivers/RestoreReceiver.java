@@ -38,8 +38,7 @@ public class RestoreReceiver extends MessageReceiver {
             // Receive CHUNK for initiator-peer
             if (this.peer.isPendingRestore(chunkKey.getFileId())) {
                 System.out.println("Initiator: received CHUNK " +  message.getChunkNo());
-                this.peer
-                        .addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
+                this.peer.addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
 
                 // Restore file if all chunks have been restored
                 if (this.peer.isReadyToRestore(chunkKey.getFileId())) {

@@ -25,14 +25,18 @@ public class Storage implements Serializable {
 
     private static final long serialVersionUID = -3297985980735829122L;
     private String path;
-    private ConcurrentHashMap<ChunkKey, Integer> storedChunks; // Stored Chunks
-    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; // To store the chunks confirmations for
-                                                                           // stored chunks
-    private ConcurrentHashMap<String, SFile> backupFiles; // To retrieve information about files which the peer has
-                                                          // initiated a backup for (initiator peer)
+    private ConcurrentHashMap<ChunkKey, Integer> storedChunks; /** Stored Chunks */ 
+    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; /** To store the chunks confirmations */
+    private ConcurrentHashMap<String, SFile> backupFiles; /** To retrieve information about files which the peer has
+                                                          initiated a backup for (initiator peer) */
     private int capacity;
     private int capacityUsed;
 
+    /**
+     * Generates a new storage for a peer if it is not in memory. Otherwise recover previous storage state 
+     * from memory.
+     * @throws IOException
+     */
     public Storage() throws IOException {
         this.path = "g04/output/peer" + Utils.PEER_ID;
         this.storedChunks = new ConcurrentHashMap<>();
@@ -52,23 +56,108 @@ public class Storage implements Serializable {
         }
     }
 
+    /**
+     * Recovers the storage previous state that was saved in memory.
+     * @param storage
+     * @throws IOException, ClassNotFoundException
+     */
     private void deserializeStorage(File storage) throws IOException, ClassNotFoundException {
         FileInputStream fi = new FileInputStream(storage);
         ObjectInputStream oi = new ObjectInputStream(fi);
         Storage s = (Storage) oi.readObject();
 
-        this.path = s.path;
-        this.storedChunks = s.storedChunks;
-        this.confirmedChunks = s.confirmedChunks;
-        this.backupFiles = s.backupFiles;
-        this.capacity = s.capacity;
-        this.capacityUsed = s.capacityUsed;
+        this.path = s.getPath();
+        this.storedChunks = s.getStoredChunks();
+        this.confirmedChunks = s.getConfirmedChunks();
+        this.backupFiles = s.getBackupFiles();
+        this.capacity = s.getCapacity();
+        this.capacityUsed = s.getCapacityUsed();
+
+        oi.close();
     }
 
+
+    // Backup
+
+    // Initiator-peer
+
+    /**
+     * Used by the initiator-peer to save information about a file he initiated a backup for.
+     * @param file
+     * @throws IOException
+     */
     public void store(SFile file) throws IOException {
         this.backupFiles.putIfAbsent(file.getFileId(), file);
     }
 
+    /**
+     * Used by a peer to check if he was the one who initiated the backup of a file.
+     * @param fileId
+     * @return true if the peer was the initiator of a backup for the file, false otherwise
+     */
+    public boolean hasFile(String fileId) {
+        return this.backupFiles.containsKey(fileId);
+    }
+
+    /**
+     * Used by a peer to check if he was the one who initiated the backup of a file.
+     * @param file
+     * @return true if the peer was the initiator of a backup for the file, false otherwise
+     */
+    public boolean hasFile(SFile file) {
+        return this.backupFiles.contains(file);
+    }
+
+    /**
+     * Used by the initiator-peer to get a file that he has backed up by its name.
+     * @param fileName
+     * @return the file with the given fileName or null if the peer did not initiate any backup for the file.
+     */
+    public SFile getFileByFileName(String fileName) {
+        for (Object file : this.backupFiles.values().toArray()) {
+            if (((SFile) file).getFileName().equals(fileName))
+                return (SFile) file;
+        }
+
+        return null;
+    }
+
+    /**
+     * Used by the initiator-peer to get the number of Chunks of a File
+     * @param fileId
+     * @return number of chunks of the file
+     */
+    public int getFileNumChunks(String fileId) {
+        return this.backupFiles.get(fileId).getBackupConfirmations().size();
+    }
+
+    /**
+     * Used by the initiator-peer to get the perceived replication degree of a chunk 
+     * (number of STORED confirmations received for that chunk)
+     * @param chunkKey
+     * @return perceived replication degree of the chunk 
+     * (number of STORED confirmations received for the chunk)
+     */
+    public int getConfirmedBackups(ChunkKey chunkKey) {
+        return this.backupFiles.get(chunkKey.getFileId()).getConfirmedBackups(chunkKey);
+    }
+
+    /**
+     * Used by the initiator-peer to add a new STORED confirmation for a chunk
+     * @param chunkKey
+     * @param serverId
+     */
+    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        this.backupFiles.get(chunkKey.getFileId()).addBackupConfirmation(chunkKey, serverId);
+    }
+
+
+    // Other peers
+    /**
+     * Used by a peer to store a chunk in non-volatile memory.
+     * @param chunk
+     * @throws IOException
+     */
     public void store(Chunk chunk) throws IOException {
         String fileDir = this.path + "/backup/file-" + chunk.getFileId();
         Files.createDirectories(Paths.get(fileDir));
@@ -94,6 +183,71 @@ public class Storage implements Serializable {
         baos.close();
     }
 
+    /**
+     * Used by a peer to keep track of a chunk that he has stored.
+     * @param chunkKey
+     */
+    public void addChunk(ChunkKey chunkKey) {
+        this.storedChunks.put(chunkKey, chunkKey.getReplicationDegree());
+    }
+
+    /**
+     * Used by a peer to check if he has a chunk stored in memory.
+     * @param chunkKey
+     * @return true if the peer has stored that chunk, false otherwise
+     */
+    public boolean hasStoredChunk(ChunkKey chunkKey) {
+        return this.storedChunks.containsKey(chunkKey);
+    }
+
+
+    // All peers
+    /**
+     * Used by any peer to store all the STORED confirmations received for chunks, 
+     * except his own confirmations.
+     * @param chunkKey
+     * @param serverId
+     */
+    public void addStoredConfirmation(ChunkKey chunkKey, int serverId) {
+
+        if (serverId != Utils.PEER_ID) {
+
+            HashSet<Integer> peers;
+
+            if (!this.confirmedChunks.containsKey(chunkKey)) {
+                peers = new HashSet<>();
+            } else {
+                peers = this.confirmedChunks.get(chunkKey);
+            }
+
+            peers.add(serverId);
+            this.confirmedChunks.put(chunkKey, peers);
+        }
+    }
+
+    /**
+     * Used by the a peer to get the perceived replication degree of a chunk 
+     * (number of STORED confirmations received for that chunk)
+     * @param chunkKey
+     * @return perceived replication degree of the chunk 
+     * (number of STORED confirmations received for the chunk)
+     */
+    public int getConfirmedChunks(ChunkKey chunkKey) {
+        if (this.confirmedChunks.containsKey(chunkKey)) {
+            return this.confirmedChunks.get(chunkKey).size();
+        }
+
+        return 0;
+    }
+
+
+    // Restore
+    /**
+     * Used by the initiator-peer to restore a file, given all its chunks.
+     * @param fileId
+     * @param restoredChunks
+     * @throws IOException
+     */
     public void storeRestored(String fileId, TreeSet<Chunk> restoredChunks) throws IOException {
 
         String fileDir = this.path + "/restored";
@@ -123,8 +277,18 @@ public class Storage implements Serializable {
         System.out.println("File " + this.backupFiles.get(fileId).getFileName() + " restored");
     }
 
-    // http://tutorials.jenkov.com/java-nio/asynchronousfilechannel.html
-    // https://www.baeldung.com/java-nio2-async-file-channel
+    /**
+     * Used by a peer to read a stored chunk from memory.
+     * 
+     * AsynchronousFileChannel resources:
+     * http://tutorials.jenkov.com/java-nio/asynchronousfilechannel.html
+     * https://www.baeldung.com/java-nio2-async-file-channel
+     * @param fileId
+     * @param chunkNum
+     * @return the Chunk with the requested fileId and chunkNum
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
 
         Path path = Paths.get(this.path + "/backup/file-" + fileId + "/chunk-" + chunkNum + ".ser");
@@ -148,27 +312,28 @@ public class Storage implements Serializable {
         return c;
     }
 
-    public void addChunk(ChunkKey chunkKey) {
-        this.storedChunks.put(chunkKey, chunkKey.getReplicationDegree());
+    
+    // Reclaim
+    /**
+     * Used by the initiator-peer to decrease the perceived replication degree of a chunk when 
+     * he receives a REMOVED message. Removes the STORED confirmation that was stored for the given 
+     * server because that server has discarded the chunk.
+     * @param chunkKey
+     * @param serverId
+     * @return the perceived replication degree of the chunk
+     */
+    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        return this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
     }
 
-    public void addStoredConfirmation(ChunkKey chunkKey, int serverId) {
-
-        if (serverId != Utils.PEER_ID) {
-
-            HashSet<Integer> peers;
-
-            if (!this.confirmedChunks.containsKey(chunkKey)) {
-                peers = new HashSet<>();
-            } else {
-                peers = this.confirmedChunks.get(chunkKey);
-            }
-
-            peers.add(serverId);
-            this.confirmedChunks.put(chunkKey, peers);
-        }
-    }
-
+    /**
+     * Used by a peer to decrease the perceived replication degree of a chunk when 
+     * he receives a REMOVED message. Removes the STORED confirmation that was stored for the given 
+     * server because that server has discarded the chunk.
+     * @param chunkKey
+     * @param serverId
+     * @return the perceived replication degree of the chunk
+     */
     public Integer removeStoredConfirmation(ChunkKey chunkKey, int serverId) {
 
         if (this.confirmedChunks.containsKey(chunkKey)) {
@@ -176,64 +341,16 @@ public class Storage implements Serializable {
             peers.remove(serverId);
             this.confirmedChunks.put(chunkKey, peers);
 
-            return peers.size();
+            // If the peer has stored the chunk, he must count his own confirmation when calculating 
+            // the perceived replication degree
+            return (this.hasStoredChunk(chunkKey) ? peers.size() + 1 : peers.size());
         }
 
         return 0;
     }
 
-    public boolean hasStoredChunk(ChunkKey chunkKey) {
-        return this.storedChunks.containsKey(chunkKey);
-    }
 
-    public boolean hasFile(String fileId) {
-        return this.backupFiles.containsKey(fileId);
-    }
-
-    public boolean hasFile(SFile file) {
-        return this.backupFiles.contains(file);
-    }
-
-    public SFile getFileByFileName(String fileName) {
-        for (Object file : this.backupFiles.values().toArray()) {
-            if (((SFile) file).getFileName().equals(fileName))
-                return (SFile) file;
-        }
-
-        return null;
-    }
-
-    public int getFileNumChunks(String fileId) {
-        return this.backupFiles.get(fileId).getBackupConfirmations().size();
-    }
-
-    public ConcurrentHashMap<ChunkKey, Integer> getStoredChunks() {
-        return this.storedChunks;
-    }
-
-    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getConfirmedChunks() {
-        return this.confirmedChunks;
-    }
-
-    public int getConfirmedBackups(ChunkKey chunkKey) {
-        return this.backupFiles.get(chunkKey.getFileId()).getConfirmedBackups(chunkKey);
-    }
-
-    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        this.backupFiles.get(chunkKey.getFileId()).addBackupConfirmation(chunkKey, serverId);
-    }
-
-    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        return this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
-    }
-
-    public String getPath() {
-        return this.path;
-    }
-
-    public ConcurrentHashMap<String, SFile> getBackupFiles() {
-        return this.backupFiles;
-    }
+    // Capacity
 
     public void decreaseCapacity(int amount) {
         this.capacityUsed -= amount;
@@ -251,7 +368,31 @@ public class Storage implements Serializable {
         return this.capacity < this.capacityUsed;
     }
 
+
+    // Getters
+
+    public String getPath() {
+        return this.path;
+    }
+
+    public ConcurrentHashMap<ChunkKey, Integer> getStoredChunks() {
+        return this.storedChunks;
+    }
+
+    public ConcurrentHashMap<String, SFile> getBackupFiles() {
+        return this.backupFiles;
+    }
+
+    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getConfirmedChunks() {
+        return this.confirmedChunks;
+    }
+
     public int getCapacity() {
         return this.capacity;
     }
+
+    public int getCapacityUsed() {
+        return this.capacityUsed;
+    }
+
 }

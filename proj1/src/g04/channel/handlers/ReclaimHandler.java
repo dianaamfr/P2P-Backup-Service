@@ -28,7 +28,7 @@ public class ReclaimHandler implements Runnable {
         ArrayList<ReplicationDegreeComparable> chunks = new ArrayList<>();
 
         for(ChunkKey key: this.storage.getStoredChunks().keySet()){
-            chunks.add(new ReplicationDegreeComparable(key, this.storage.getConfirmedChunks().get(key).size()));
+            chunks.add(new ReplicationDegreeComparable(key, this.storage.getConfirmedChunks(key)));
         }
 
         Collections.sort(chunks, (a,b) -> a.compare(b));
