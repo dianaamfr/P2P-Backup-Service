@@ -35,26 +35,29 @@ public class BackupHandler implements Runnable {
     @Override
     public void run() {
 
-        System.out.println("PUTCHUNK " + chunkKey.getChunkNum() + " try " + this.tries);
-        System.out.println("Peer " + Utils.PEER_ID + " confirmed = " + this.peer.getStorage().getConfirmedBackups(chunkKey) + " desired = " + replicationDegree);
-        
-        // TODO - check if we can can use this instead - 
-        //System.out.println("Peer " + Utils.PEER_ID + " confirmed2 = " + this.peer.getStorage().getConfirmedChunks(chunkKey) + " desired = " + replicationDegree);
-        
-        // TODO - check if we can use: this.peer.getStorage().getConfirmedChunks(chunkKey) to get the perceived rep degree
-        // If we can, that would allow peers to execute the PUTCHUNK protocol after receiving REMOVED messages
-        if(this.peer.getStorage().getConfirmedBackups(chunkKey) < replicationDegree && this.tries < Utils.MAX_TRIES) {
-    
-            // Send PutChunk message
-            try {
-				this.peer.getBackupChannel().getSocket().send(packet);
-			} catch (IOException e) {
-                System.err.println("Failed to send PUTCHUNK " + chunkKey.getChunkNum());
-			}
+        /*System.out.println("Peer " + Utils.PEER_ID + " confirmed = "
+                + this.peer.getStorage().getConfirmedChunks(chunkKey) + " desired = " + replicationDegree);
+        */
+        // Send PUTCHUNK if the desired replication degree was not yet reached
+        if (this.peer.getStorage().getConfirmedChunks(chunkKey) < replicationDegree) {
 
-            // Wait for confirmation
-			this.peer.getScheduler().schedule(new BackupHandler(this.peer, this.packet, this.chunkKey, 
-                this.replicationDegree, this.tries + 1, this.time * 2), this.time, TimeUnit.MILLISECONDS);
-		}
+            if (this.tries < Utils.MAX_TRIES) {
+
+                // Send PutChunk message
+                try {
+                    this.peer.getBackupChannel().getSocket().send(packet);
+                    System.out.println(
+                            "Peer" + Utils.PEER_ID + " sent PUTCHUNK " + chunkKey.getChunkNum() + " try " + this.tries);
+                } catch (IOException e) {
+                    System.err.println("Failed to send PUTCHUNK " + chunkKey.getChunkNum());
+                }
+
+                // Wait for confirmation
+                this.peer.getScheduler().schedule(new BackupHandler(this.peer, this.packet, this.chunkKey,
+                        this.replicationDegree, this.tries + 1, this.time * 2), this.time, TimeUnit.MILLISECONDS);
+            } else {
+                System.out.println("Maximum tries to send PUTCHUNK exceded");
+            }
+        }
     }
 }

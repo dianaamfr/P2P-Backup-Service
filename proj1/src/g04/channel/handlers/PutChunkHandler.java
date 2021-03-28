@@ -38,7 +38,7 @@ public class PutChunkHandler implements Runnable {
                     storage.addChunk(chunk.getChunkKey());
                 } else {
                     stored = false;
-                    System.out.println("NO CAPACITY TO STORE CHUNK " + chunk.getChunkNum());
+                    System.out.println("Peer" + Utils.PEER_ID + ": NO CAPACITY TO STORE CHUNK " + chunk.getChunkNum());
                 }
 
             } catch (IOException e) {

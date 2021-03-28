@@ -149,6 +149,9 @@ public class Storage implements Serializable {
      */
     public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
         this.backupFiles.get(chunkKey.getFileId()).addBackupConfirmation(chunkKey, serverId);
+
+        // TODO: Notify if backup is complete
+        // Check if it has all the chunks and, for each chunk, if they have the desired replication degree
     }
 
 
@@ -223,6 +226,12 @@ public class Storage implements Serializable {
             peers.add(serverId);
             this.confirmedChunks.put(chunkKey, peers);
         }
+
+        // Initiator-peer: add peer confirmation for a chunk of a file I backed up 
+        if(this.hasFile(chunkKey.getFileId())){
+            this.addBackupConfirmation(chunkKey, serverId);
+        }
+
     }
 
     /**
@@ -234,9 +243,8 @@ public class Storage implements Serializable {
      */
     public int getConfirmedChunks(ChunkKey chunkKey) {
         if (this.confirmedChunks.containsKey(chunkKey)) {
-            return this.confirmedChunks.get(chunkKey).size();
+            return this.hasStoredChunk(chunkKey) ? this.confirmedChunks.get(chunkKey).size() + 1 : this.confirmedChunks.get(chunkKey).size() ;
         }
-
         return 0;
     }
 
@@ -322,8 +330,8 @@ public class Storage implements Serializable {
      * @param serverId
      * @return the perceived replication degree of the chunk
      */
-    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        return this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
+    public void removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
+        this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
     }
 
     /**
@@ -336,6 +344,12 @@ public class Storage implements Serializable {
      */
     public Integer removeStoredConfirmation(ChunkKey chunkKey, int serverId) {
 
+        // Initiator-peer: remove a confirmation for a chunk of a file he backed up
+        if(this.hasFile(chunkKey.getFileId())){
+            this.removeBackupConfirmation(chunkKey, serverId);
+        }
+
+        // All peers 
         if (this.confirmedChunks.containsKey(chunkKey)) {
             HashSet<Integer> peers = this.confirmedChunks.get(chunkKey);
             peers.remove(serverId);

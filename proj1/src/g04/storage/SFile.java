@@ -20,6 +20,7 @@ public class SFile implements Serializable {
     private File file;
     private long fileSize;
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks of the file
+    private int numberOfChunks;
 
     public SFile(String fileName) {
         this.fileName = fileName;
@@ -32,6 +33,7 @@ public class SFile implements Serializable {
         this.fileSize = this.file.length();
         this.replicationDegree = replicationDegree;
         this.backupConfirmations = new ConcurrentHashMap<>();
+        this.numberOfChunks = 0;
     }
 
     public ArrayList<Chunk> generateChunks() throws IOException{
@@ -41,13 +43,13 @@ public class SFile implements Serializable {
             throw new IOException("Max File Size Exception");
         }
         
-        int chunksNum = (int) Math.ceil((double) this.file.length() / Utils.CHUNK_SIZE);
+        this.numberOfChunks = (int) Math.ceil((double) this.file.length() / Utils.CHUNK_SIZE);
 
         // Read chunks
         ArrayList<Chunk> chunks = new ArrayList<>();
         byte[] fileBytes = Files.readAllBytes(this.file.toPath());
         
-        for(int i = 0; i < chunksNum ; i++) { 
+        for(int i = 0; i < this.numberOfChunks ; i++) { 
             int bufLength = fileBytes.length - i * Utils.CHUNK_SIZE > Utils.CHUNK_SIZE ? Utils.CHUNK_SIZE : fileBytes.length - Utils.CHUNK_SIZE * i;
 
             byte[] buf = new byte[bufLength];
@@ -55,20 +57,13 @@ public class SFile implements Serializable {
 
             Chunk chunk = new Chunk(i, this.fileId, buf, this.replicationDegree);
             chunks.add(chunk);
-
-            if (!this.backupConfirmations.containsKey(chunk.getChunkKey())){
-                this.backupConfirmations.put(chunk.getChunkKey(), new HashSet<Integer>());
-            }
         }
 
         // File Size is multiple of the chunk size 
         if(this.fileSize % Utils.CHUNK_SIZE == 0){
-            Chunk chunk = new Chunk(chunksNum, this.fileId, new byte[0] ,this.replicationDegree);
+            this.numberOfChunks++;
+            Chunk chunk = new Chunk(this.numberOfChunks, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
-
-            if (!this.backupConfirmations.containsKey(chunk.getChunkKey())){
-                this.backupConfirmations.put(chunk.getChunkKey(), new HashSet<Integer>());
-            }
         }
 
         return chunks;
@@ -110,18 +105,17 @@ public class SFile implements Serializable {
 
         chunkPeers.add(serverId);
         this.backupConfirmations.put(chunkKey, chunkPeers);
+
     }
 
-    public Integer removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
+    public void removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
         HashSet<Integer> chunkPeers;
         if (this.backupConfirmations.containsKey(chunkKey)) {
 			chunkPeers = this.backupConfirmations.get(chunkKey);
 
             chunkPeers.remove(serverId);
             this.backupConfirmations.put(chunkKey, chunkPeers);
-            return chunkPeers.size();
 		}
-        return 0;
     }
 
     @Override
@@ -132,4 +126,5 @@ public class SFile implements Serializable {
     public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getBackupConfirmations(){
         return this.backupConfirmations;
     }
+
 }

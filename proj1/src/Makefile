@@ -96,6 +96,12 @@ delete6:
 delete7: 
 	java g04.TestApp peer1 DELETE test7.mp3
 
+reclaim_decrease2:
+	java g04.TestApp peer2 RECLAIM 70
+
+reclaim_increase2:
+	java g04.TestApp peer2 RECLAIM 5000
+
 delout:
 	rm -r g04/output/*
 

@@ -42,18 +42,11 @@ public class ControlReceiver extends MessageReceiver {
             switch (message.getMessageType()) {
                 case "STORED":
 
-                System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId() + " for chunk " + chunkKey.getChunkNum()
-                /*+ "conf= " + storage.getConfirmedChunks(chunkKey)*/);
+                    System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId() + " for chunk " + chunkKey.getChunkNum());
       
                     // Add peer confirmation for a chunk
                     storage.addStoredConfirmation(chunkKey, message.getSenderId());
-                    
-                    // Add peer confirmation for a chunk of a file I backed up (initiator-peer)
-                    if(storage.hasFile(message.getFileId())){
-                        storage.addBackupConfirmation(chunkKey, message.getSenderId());
-                    }
-                    
-
+                
                     break;
                     
                 case "GETCHUNK":
@@ -71,10 +64,6 @@ public class ControlReceiver extends MessageReceiver {
 
                     if((message.getSenderId() != Utils.PEER_ID)){
                         int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
-                    
-                        if(storage.hasFile(message.getFileId())){
-                            confirmations = storage.removeBackupConfirmation(chunkKey, message.getSenderId());
-                        }
 
                         if(storage.hasStoredChunk(chunkKey)){
                             int desiredReplicationDegree  = storage.getStoredChunks().get(chunkKey);
@@ -85,7 +74,7 @@ public class ControlReceiver extends MessageReceiver {
                                 chunkKey.setReplicationDegree(desiredReplicationDegree);
         
                                 // Start PUTCHUNK protocol to ensure the desired replication degree
-                                //this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);    
+                                this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);    
                             }
                         }
                     }
