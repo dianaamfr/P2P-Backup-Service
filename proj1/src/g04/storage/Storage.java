@@ -128,32 +128,8 @@ public class Storage implements Serializable {
      * @return number of chunks of the file
      */
     public int getFileNumChunks(String fileId) {
-        return this.backupFiles.get(fileId).getBackupConfirmations().size();
+        return this.backupFiles.get(fileId).getNumberOfChunks();
     }
-
-    /**
-     * Used by the initiator-peer to get the perceived replication degree of a chunk 
-     * (number of STORED confirmations received for that chunk)
-     * @param chunkKey
-     * @return perceived replication degree of the chunk 
-     * (number of STORED confirmations received for the chunk)
-     */
-    public int getConfirmedBackups(ChunkKey chunkKey) {
-        return this.backupFiles.get(chunkKey.getFileId()).getConfirmedBackups(chunkKey);
-    }
-
-    /**
-     * Used by the initiator-peer to add a new STORED confirmation for a chunk
-     * @param chunkKey
-     * @param serverId
-     */
-    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        this.backupFiles.get(chunkKey.getFileId()).addBackupConfirmation(chunkKey, serverId);
-
-        // TODO: Notify if backup is complete
-        // Check if it has all the chunks and, for each chunk, if they have the desired replication degree
-    }
-
 
     // Other peers
     /**
@@ -225,11 +201,6 @@ public class Storage implements Serializable {
 
             peers.add(serverId);
             this.confirmedChunks.put(chunkKey, peers);
-        }
-
-        // Initiator-peer: add peer confirmation for a chunk of a file I backed up 
-        if(this.hasFile(chunkKey.getFileId())){
-            this.addBackupConfirmation(chunkKey, serverId);
         }
 
     }
@@ -322,17 +293,6 @@ public class Storage implements Serializable {
 
     
     // Reclaim
-    /**
-     * Used by the initiator-peer to decrease the perceived replication degree of a chunk when 
-     * he receives a REMOVED message. Removes the STORED confirmation that was stored for the given 
-     * server because that server has discarded the chunk.
-     * @param chunkKey
-     * @param serverId
-     * @return the perceived replication degree of the chunk
-     */
-    public void removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        this.backupFiles.get(chunkKey.getFileId()).removeBackupConfirmation(chunkKey, serverId);
-    }
 
     /**
      * Used by a peer to decrease the perceived replication degree of a chunk when 
@@ -343,11 +303,6 @@ public class Storage implements Serializable {
      * @return the perceived replication degree of the chunk
      */
     public Integer removeStoredConfirmation(ChunkKey chunkKey, int serverId) {
-
-        // Initiator-peer: remove a confirmation for a chunk of a file he backed up
-        if(this.hasFile(chunkKey.getFileId())){
-            this.removeBackupConfirmation(chunkKey, serverId);
-        }
 
         // All peers 
         if (this.confirmedChunks.containsKey(chunkKey)) {

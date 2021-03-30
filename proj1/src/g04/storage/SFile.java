@@ -6,8 +6,6 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
 
 import g04.Utils;
 
@@ -19,7 +17,6 @@ public class SFile implements Serializable {
     private int replicationDegree;
     private File file;
     private long fileSize;
-    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> backupConfirmations; // To store the backup confirmations for backed up chunks of the file
     private int numberOfChunks;
 
     public SFile(String fileName) {
@@ -32,7 +29,6 @@ public class SFile implements Serializable {
         this.fileId = Utils.generateHash(this.file);
         this.fileSize = this.file.length();
         this.replicationDegree = replicationDegree;
-        this.backupConfirmations = new ConcurrentHashMap<>();
         this.numberOfChunks = 0;
     }
 
@@ -81,41 +77,8 @@ public class SFile implements Serializable {
         return replicationDegree;
     }
 
-    public int getConfirmedBackups(ChunkKey chunkKey) {
-
-        if (this.backupConfirmations.containsKey(chunkKey)) {
-            return this.backupConfirmations.get(chunkKey).size();
-        }
-
-        return 0;
-    }
-
     public long getFileSize(){
         return this.fileSize;
-    }
-
-    public void addBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        HashSet<Integer> chunkPeers;
-        
-        if (this.backupConfirmations.containsKey(chunkKey)) {
-			chunkPeers = this.backupConfirmations.get(chunkKey);
-		} else {
-			chunkPeers = new HashSet<Integer>();
-		}
-
-        chunkPeers.add(serverId);
-        this.backupConfirmations.put(chunkKey, chunkPeers);
-
-    }
-
-    public void removeBackupConfirmation(ChunkKey chunkKey, int serverId) {
-        HashSet<Integer> chunkPeers;
-        if (this.backupConfirmations.containsKey(chunkKey)) {
-			chunkPeers = this.backupConfirmations.get(chunkKey);
-
-            chunkPeers.remove(serverId);
-            this.backupConfirmations.put(chunkKey, chunkPeers);
-		}
     }
 
     @Override
@@ -123,8 +86,8 @@ public class SFile implements Serializable {
         return this.fileName.equals(((SFile) obj).getFileName());
     }
 
-    public ConcurrentHashMap<ChunkKey, HashSet<Integer>> getBackupConfirmations(){
-        return this.backupConfirmations;
+    public int getNumberOfChunks(){
+        return this.numberOfChunks;
     }
 
 }
