@@ -16,7 +16,7 @@ public class BackupReceiver extends MessageReceiver {
     }
 
     @Override
-    public void run(){
+    public void run() {
 
         while (true) {
 
@@ -33,16 +33,17 @@ public class BackupReceiver extends MessageReceiver {
             Message message = this.parseMessage(packet);
 
             // Receive Putchunk - don't store his own chunks
-            if (message.getMessageType().equals("PUTCHUNK")
-                    && (message.getSenderId() != Utils.PEER_ID)) {
+            if (message.getMessageType().equals("PUTCHUNK") && (message.getSenderId() != Utils.PEER_ID)
+                    && !this.peer.getStorage().hasFile(message.getFileId())) {
 
-                    ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
+                ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
-                    if(this.peer.hasRemovedChunk(chunkKey)) {
-                        this.peer.deleteRemovedChunk(chunkKey);
-                    }
+                if (this.peer.hasRemovedChunk(chunkKey)) {
+                    this.peer.deleteRemovedChunk(chunkKey);
+                }
 
-                    this.peer.getScheduler().schedule(new PutChunkHandler(this.peer, message), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
+                this.peer.getScheduler().schedule(new PutChunkHandler(this.peer, message), Utils.getRandomDelay(),
+                        TimeUnit.MILLISECONDS);
             }
         }
     }

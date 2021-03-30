@@ -15,7 +15,7 @@ public class ReplicationDegreeComparable {
         int myDiff = this.perceivedRepDegree - this.chunkKey.getReplicationDegree();
         int otherDiff = other.perceivedRepDegree - other.chunkKey.getReplicationDegree();
         
-        return myDiff < otherDiff ? -1 : myDiff == otherDiff ? 0 : 1;
+        return myDiff < otherDiff ? 1 : myDiff == otherDiff ? 0 : -1;
     }
 
     public ChunkKey getChunkKey() {

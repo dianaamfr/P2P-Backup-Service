@@ -24,6 +24,12 @@ peers: all rmi
 	java g04.Peer 1.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 
+peers2: all rmi
+	java g04.Peer 2.0 0 peer0 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+	java g04.Peer 2.0 1 peer1 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+	java g04.Peer 2.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+	java g04.Peer 2.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+
 backup: 
 	java g04.TestApp peer0 BACKUP Makefile 3
 
@@ -43,7 +49,7 @@ backup5:
 	java g04.TestApp peer0 BACKUP g04/test/login-tog.png 3
 
 backup6: 
-	java g04.TestApp peer1 BACKUP g04/test/test6.pdf 2
+	java g04.TestApp peer1 BACKUP g04/test/test6.pdf 1
 
 backup7: 
 	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3
@@ -101,6 +107,18 @@ reclaim_decrease2:
 
 reclaim_increase2:
 	java g04.TestApp peer2 RECLAIM 5000
+
+state:
+	java g04.TestApp peer0 STATE
+
+state1:
+	java g04.TestApp peer1 STATE
+
+state2:
+	java g04.TestApp peer2 STATE
+
+state3:
+	java g04.TestApp peer3 STATE
 
 delout:
 	rm -r g04/output/*

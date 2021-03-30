@@ -382,6 +382,9 @@ public class Storage implements Serializable {
         return this.capacity < this.capacityUsed;
     }
 
+    public int getFreeCapacity() {
+        return this.capacity - this.capacityUsed;
+    }
 
     // Getters
 
@@ -408,5 +411,4 @@ public class Storage implements Serializable {
     public int getCapacityUsed() {
         return this.capacityUsed;
     }
-
 }

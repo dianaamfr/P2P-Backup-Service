@@ -57,7 +57,9 @@ public class BackupHandler implements Runnable {
                         this.replicationDegree, this.tries + 1, this.time * 2), this.time, TimeUnit.MILLISECONDS);
             } else {
                 System.out.println("Maximum tries to send PUTCHUNK exceded");
+                // TODO: notify peer
             }
         }
+        // TODO: notify peer
     }
 }

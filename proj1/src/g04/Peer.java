@@ -34,7 +34,7 @@ public class Peer implements IRemote {
     // Auxiliar data structures for RESTORE
     private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; /* For each file pending restore, keeps the
                                                                            chunks already restored (initiator-peer) */
-    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; /** Keeps track of restore requests (non-iniator peers) */
+    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; /** Keeps track of restore requests (non-initiator peers) */
     
     // Auxiliar data structures for REMOVED
     private ConcurrentHashMap<ChunkKey, Integer> removedChunks; /** Keeps track of removed chunks */
@@ -144,12 +144,12 @@ public class Peer implements IRemote {
                 this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
 
                 // Send GETCHUNK message for each chunk of the file
-                for (ChunkKey key : file.getBackupConfirmations().keySet()) {
-                    DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION,
-                            Utils.PEER_ID, key);
-
-                    System.out.println("GETCHUNK " + key.getChunkNum());
-                    this.getControlChannel().sendMessage(packet);
+                for (ChunkKey key : this.storage.getConfirmedChunks().keySet()) {
+                    if(key.getFileId().equals(file.getFileId())){
+                        DatagramPacket packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, key);
+                        System.out.println("GETCHUNK " + key.getChunkNum());
+                        this.getControlChannel().sendMessage(packet);
+                    }
                 }
             } else {
                 throw new Exception("SFile is null");
@@ -194,7 +194,64 @@ public class Peer implements IRemote {
 
     @Override
     public void state() throws RemoteException {
-        // TODO Auto-generated method stub
+        
+        /*
+        For each file whose backup it has initiated:
+            The file pathname
+            The backup service id of the file
+            The desired replication degree
+            For each chunk of the file:
+            Its id
+            Its perceived replication degree
+        */
+        System.out.println("\nPeer: " + Utils.PEER_ID);
+        System.out.println("\nStored Files:");
+        ConcurrentHashMap<String,SFile> backupFiles = this.storage.getBackupFiles();
+        for(String fileId : backupFiles.keySet()){
+            SFile file = backupFiles.get(fileId);
+
+            System.out.println("\tPathname: " + file.getFileName());
+            System.out.println("\tFileID: " + file.getFileId());
+            System.out.println("\tReplication Degree: " + file.getReplicationDegree());
+
+            System.out.println("\tChunks: ");
+            
+            for (ChunkKey key : this.storage.getConfirmedChunks().keySet()) {
+                if(key.getFileId().equals(file.getFileId())){
+                    System.out.println("\t\tChunk No: " + key.getChunkNum());
+                    System.out.println("\t\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
+                    System.out.println("\t\t----------------------------------------------------");
+                }
+            }
+        }
+        
+        /*
+        For each chunk it stores:
+            Its id
+            Its size (in KBytes)
+            The desired replication degree
+            Its perceived replication degree
+        */
+        System.out.println("\nStored chunks:");
+        
+        for (ChunkKey key : storage.getStoredChunks().keySet()) {
+            
+            System.out.println("\tFileId: " + key.getFileId());
+            System.out.println("\tChunkNo: " + key.getChunkNum());
+            System.out.println("\tSize: " + key.getSize() / 1000 + " KBytes");
+            System.out.println("\tDesired Replication Degree: " + this.storage.getStoredChunks().get(key));
+            System.out.println("\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
+            System.out.println("\t----------------------------------------------------");
+        }
+
+        /*
+        The peer's storage capacity, i.e. the maximum amount of disk space that can be used to store chunks, 
+        and the amount of storage (both in KBytes) used to backup the chunks.
+        */
+        System.out.println("\nStorage capacity:");
+        System.out.println("\tMaximum capacity: " + this.storage.getCapacity() / 1000 + " KBytes");
+        System.out.println("\tUsed capacity: " + this.storage.getCapacityUsed() / 1000 + " KBytes");
+        System.out.println("\tFree capacity: " + this.storage.getFreeCapacity() / 1000 + " KBytes");
     }
 
 

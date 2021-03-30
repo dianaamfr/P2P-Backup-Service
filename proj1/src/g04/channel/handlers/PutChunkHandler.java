@@ -33,6 +33,10 @@ public class PutChunkHandler implements Runnable {
         if (!storage.hasStoredChunk(chunk.getChunkKey())) {
             try {
                 if (storage.hasCapacity(chunk.getChunkKey().getSize())) { // ver capacidade e rep degree
+                    if(this.message.getVersion().equals("2.0") && (storage.getConfirmedChunks(chunk.getChunkKey()) >= chunk.getReplicationDegree())){
+                        return;
+                    }
+
                     // Store the chunk
                     storage.store(chunk);
                     storage.addChunk(chunk.getChunkKey());
