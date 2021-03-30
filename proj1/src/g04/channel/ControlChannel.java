@@ -46,6 +46,17 @@ public class ControlChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
+    public DatagramPacket getDeletedPacket(String protocolVersion, int senderId, String fileId){
+        byte[] message = super.generateMessage(
+            protocolVersion, 
+            "DELETED", 
+            senderId, 
+            fileId,
+            new String[0]);
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
+    }
+
     public DatagramPacket getRemovedPacket(String protocolVersion, int senderId, ChunkKey chunkKey){
         byte[] message = super.generateMessage(
             protocolVersion, 

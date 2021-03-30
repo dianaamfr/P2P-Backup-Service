@@ -29,6 +29,7 @@ public class Storage implements Serializable {
     private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; /** To store the chunks confirmations */
     private ConcurrentHashMap<String, SFile> backupFiles; /** To retrieve information about files which the peer has
                                                           initiated a backup for (initiator peer) */
+    private ConcurrentHashMap<String, HashSet<Integer>> deletedFiles; /* For each deleted file, keeps the peers that did not confirm the deletion */
     private int capacity;
     private int capacityUsed;
 
@@ -42,6 +43,7 @@ public class Storage implements Serializable {
         this.storedChunks = new ConcurrentHashMap<>();
         this.confirmedChunks = new ConcurrentHashMap<>();
         this.backupFiles = new ConcurrentHashMap<>();
+        this.deletedFiles = new ConcurrentHashMap<>();
         this.capacity = Utils.MAX_CAPACITY;
         this.capacityUsed = 0;
 
@@ -72,6 +74,7 @@ public class Storage implements Serializable {
         this.backupFiles = s.getBackupFiles();
         this.capacity = s.getCapacity();
         this.capacityUsed = s.getCapacityUsed();
+        this.deletedFiles = s.getDeletedFiles();
 
         oi.close();
     }
@@ -318,6 +321,33 @@ public class Storage implements Serializable {
         return 0;
     }
 
+    // Delete
+    public void addDeletedFile(String fileId){
+        HashSet<Integer> peers = new HashSet<>();
+
+        for (ChunkKey key : this.confirmedChunks.keySet()) {
+            if(key.getFileId().equals(fileId)){
+                peers.addAll(this.confirmedChunks.get(key));
+            }
+        }
+        
+        this.deletedFiles.put(fileId, peers);
+    }
+
+    public void removePendingDeletion(String fileId, int senderId){
+        if(this.deletedFiles.containsKey(fileId)){
+    
+            HashSet<Integer> peers = this.deletedFiles.get(fileId);
+            peers.remove(senderId);
+
+            if(peers.isEmpty()){
+                this.deletedFiles.remove(fileId);
+            }
+            else{
+                this.deletedFiles.put(fileId, peers);
+            }
+        }
+    }
 
     // Capacity
 
@@ -364,6 +394,10 @@ public class Storage implements Serializable {
     }
 
     public int getCapacityUsed() {
-        return this.capacityUsed;
+        return this.capacityUsed; 
+    }
+
+    public ConcurrentHashMap<String, HashSet<Integer>> getDeletedFiles() {
+        return this.deletedFiles;
     }
 }

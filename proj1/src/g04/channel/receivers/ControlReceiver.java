@@ -19,10 +19,10 @@ public class ControlReceiver extends MessageReceiver {
     }
 
     @Override
-	public void run() {
-        
+    public void run() {
+
         while (true) {
-            
+
             byte[] messageBytes = new byte[Utils.PACKET_SIZE];
 
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
@@ -40,51 +40,59 @@ public class ControlReceiver extends MessageReceiver {
 
             // Process received message
             switch (message.getMessageType()) {
-                case "STORED":
+            case "STORED":
 
-                    System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId() + " for chunk " + chunkKey.getChunkNum());
-      
-                    // Add peer confirmation for a chunk
-                    storage.addStoredConfirmation(chunkKey, message.getSenderId());
-                
-                    break;
-                    
-                case "GETCHUNK":
-                    if((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)){
-                        this.peer.addRestoreRequest(chunkKey);
-                        this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);              
-                    }
-                    break;
+                System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId()
+                        + " for chunk " + chunkKey.getChunkNum());
 
-                case "DELETE":
-                    this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
-                    break;
+                // Add peer confirmation for a chunk
+                storage.addStoredConfirmation(chunkKey, message.getSenderId());
 
-                case "REMOVED":
+                break;
 
-                    if((message.getSenderId() != Utils.PEER_ID)){
-                        int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
+            case "GETCHUNK":
+                if ((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)) {
+                    this.peer.addRestoreRequest(chunkKey);
+                    this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(),
+                            TimeUnit.MILLISECONDS);
+                }
+                break;
 
-                        if(storage.hasStoredChunk(chunkKey)){
-                            int desiredReplicationDegree  = storage.getStoredChunks().get(chunkKey);
+            case "DELETE":
+                this.peer.getScheduler()
+                        .execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
+                break;
 
-                            if(confirmations < desiredReplicationDegree) {
-                                this.peer.addRemovedChunk(chunkKey);
-        
-                                chunkKey.setReplicationDegree(desiredReplicationDegree);
-        
-                                // Start PUTCHUNK protocol to ensure the desired replication degree
-                                this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey), Utils.getRandomDelay(), TimeUnit.MILLISECONDS);    
-                            }
+            case "REMOVED":
+                if ((message.getSenderId() != Utils.PEER_ID)) {
+                    int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
+
+                    if (storage.hasStoredChunk(chunkKey)) {
+                        int desiredReplicationDegree = storage.getStoredChunks().get(chunkKey);
+
+                        if (confirmations < desiredReplicationDegree) {
+                            this.peer.addRemovedChunk(chunkKey);
+
+                            chunkKey.setReplicationDegree(desiredReplicationDegree);
+
+                            // Start PUTCHUNK protocol to ensure the desired replication degree
+                            this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey),
+                                    Utils.getRandomDelay(), TimeUnit.MILLISECONDS);
                         }
                     }
-                    
-                    break;
-                default:
-                    break;
+                }
+                break;
+
+            case "DELETED":
+                if ((message.getSenderId() != Utils.PEER_ID)) {
+                    storage.removePendingDeletion(message.getFileId(), message.getSenderId());
+                }
+                break;
+            default:
+                break;
             }
-            
+
         }
-	}
-    
+    }
+
 }

@@ -1,9 +1,11 @@
 package g04.channel.handlers;
 
 import java.io.File;
+import java.io.IOException;
 
 import g04.Peer;
 import g04.Utils;
+import g04.channel.ControlChannel;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
 
@@ -44,8 +46,21 @@ public class DeleteHandler implements Runnable {
                 }
                 fileFolder.delete();
             }		
+            try {
+                // Send DELETED message
+                ControlChannel controlChannel = this.peer.getControlChannel();
+				controlChannel.sendMessage(controlChannel.getDeletedPacket(
+				    Utils.PROTOCOL_VERSION, 
+				    Utils.PEER_ID,
+				    this.fileId
+				));
+			} catch (IOException e) {
+                System.out.println("Failed to send DELETED for file " + this.fileId);
+			}
         }
         else{
+
+            // Initiator-peer: Remove from restored files
             File file = new File(storage.getPath() + "/restored/" + storage.getBackupFiles().get(this.fileId).getFileName());
 
             storage.getBackupFiles().remove(this.fileId);

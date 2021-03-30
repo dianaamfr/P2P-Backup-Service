@@ -19,6 +19,7 @@ import g04.channel.ControlChannel;
 import g04.channel.RestoreChannel;
 import g04.channel.handlers.BackupHandler;
 import g04.channel.handlers.ReclaimHandler;
+import g04.storage.AsyncDeleteUpdater;
 import g04.storage.AsyncStorageUpdater;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
@@ -46,6 +47,10 @@ public class Peer implements IRemote {
         this.scheduler = new ScheduledThreadPoolExecutor(50);
 
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage), 5000, 5000, TimeUnit.MILLISECONDS);
+
+        if(Utils.PROTOCOL_VERSION.equals("2.0")){
+            this.scheduler.scheduleWithFixedDelay(new AsyncDeleteUpdater(this), 5000, 5000, TimeUnit.MILLISECONDS);
+        }
 
         this.pendingRestoreFiles = new ConcurrentHashMap<>();
         this.restoreRequests = new ConcurrentHashMap<>();
@@ -175,6 +180,10 @@ public class Peer implements IRemote {
                         file.getFileId());
 
                 this.getControlChannel().sendMessage(packet);
+
+                if(Utils.PROTOCOL_VERSION.equals("2.0")){
+                    this.storage.addDeletedFile(file.getFileId());
+                }
             } else {
                 throw new Exception("SFile is null");
             }
