@@ -175,15 +175,16 @@ public class Peer implements IRemote {
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {
 
-                // Send DELETE message for each chunk of the file
-                DatagramPacket packet = this.getControlChannel().getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
-                        file.getFileId());
-
-                this.getControlChannel().sendMessage(packet);
-
+                // Add file to deleted files
                 if(Utils.PROTOCOL_VERSION.equals("2.0")){
                     this.storage.addDeletedFile(file.getFileId());
                 }
+
+                DatagramPacket packet = this.getControlChannel().getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, file.getFileId());
+                // Send DELETE message
+                System.out.println("DELETE " + file.getFileId());
+                this.getControlChannel().sendMessage(packet);
+
             } else {
                 throw new Exception("SFile is null");
             }

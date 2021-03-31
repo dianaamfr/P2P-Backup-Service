@@ -55,7 +55,7 @@ public abstract class MessageReceiver implements Runnable {
 
         Message message = new Message(args[0], args[1], Integer.parseInt(args[2]), args[3]);
 
-        if (!message.getMessageType().equals("DELETE")) {
+        if (!message.getMessageType().equals("DELETE")  && !message.getMessageType().equals("DELETED")) {
             message.setChunkNo(Integer.parseInt(args[4]));
 
             if (message.getMessageType().equals("PUTCHUNK")) {

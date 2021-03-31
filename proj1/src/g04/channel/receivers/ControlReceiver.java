@@ -59,8 +59,10 @@ public class ControlReceiver extends MessageReceiver {
                 break;
 
             case "DELETE":
-                this.peer.getScheduler()
-                        .execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
+
+                System.out.println("Peer" + Utils.PEER_ID + " received DELETE from " + message.getSenderId());
+                
+                this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
                 break;
 
             case "REMOVED":
@@ -84,7 +86,12 @@ public class ControlReceiver extends MessageReceiver {
                 break;
 
             case "DELETED":
-                if ((message.getSenderId() != Utils.PEER_ID)) {
+
+                if (Utils.PROTOCOL_VERSION.equals("2.0") && (message.getSenderId() != Utils.PEER_ID)) {
+
+                    System.out.println("Peer" + Utils.PEER_ID + " received DELETED from " + message.getSenderId());
+
+                    // Confirm deletion of a file from a peer
                     storage.removePendingDeletion(message.getFileId(), message.getSenderId());
                 }
                 break;

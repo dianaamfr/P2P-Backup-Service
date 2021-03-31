@@ -322,6 +322,11 @@ public class Storage implements Serializable {
     }
 
     // Delete
+    /**
+     * In the version 2.0 of the Delete Protocol, it is used by the Initiator-peer to add a file that is being deleted
+     * and associates it with the peers that must send DELETED confirmations.
+     * @param fileId
+     */
     public void addDeletedFile(String fileId){
         HashSet<Integer> peers = new HashSet<>();
 
@@ -334,6 +339,13 @@ public class Storage implements Serializable {
         this.deletedFiles.put(fileId, peers);
     }
 
+    /**
+     * In the version 2.0 of the Delete Protocol, it is used when a DELETED confirmation is received by the Initiator-peer,
+     * removing the pending confirmation. If all the peers that had chunks of the file have already confirmed the deletion,
+     * the file is removed from the files pending deletion.
+     * @param fileId
+     * @param senderId
+     */
     public void removePendingDeletion(String fileId, int senderId){
         if(this.deletedFiles.containsKey(fileId)){
     
