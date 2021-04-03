@@ -1,6 +1,6 @@
 package g04.channel.handlers;
 
-import java.io.PrintWriter;
+import java.io.DataOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -53,13 +53,13 @@ public class GetChunkHandler implements Runnable {
 
             // Version 2.0: use TCP to send CHUNK
             if(Utils.PROTOCOL_VERSION.equals("2.0") && this.address != null && this.tcpPort >= 0){
-                Socket clientSocket = new Socket(this.address, this.tcpPort);
-                PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-                out.println(new String(packet.getData(), 0, packet.getLength() - 1));
+                Socket socket = new Socket(this.address, this.tcpPort);
+                DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+                out.write(packet.getData());
                 out.close();
-                clientSocket.close();
+                socket.close();
             }
-            // Version 1.0: use Restore Multicasr Channel to send CHUNK
+            // Version 1.0: use Restore Multicast Channel to send CHUNK
             else{
                 restoreChannel.sendMessage(packet);
             }

@@ -32,6 +32,7 @@ public class TcpRestoreHandler implements Runnable {
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
 			byte[] bytes = in.readAllBytes();
             message = this.receiver.parseMessage(bytes);
+            in.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
