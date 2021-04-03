@@ -38,6 +38,7 @@ public class DeleteHandler implements Runnable {
             boolean hasFile = false;
             // Delete all confirmations and data associated with chunks of the deleted file
             for (ChunkKey key : storage.getStoredChunks().keySet()) {
+                // Peer has stored a chunk of the file
                 if (key.getFileId().equals(fileId)) {
                     storage.getStoredChunks().remove(key);
                     storage.getConfirmedChunks().remove(key);
@@ -47,6 +48,14 @@ public class DeleteHandler implements Runnable {
             }
 
             if(!hasFile){
+                
+                // Remove confirmations from peers that did not store chunks of the file
+                for (ChunkKey key : storage.getConfirmedChunks().keySet()) {
+                    if (key.getFileId().equals(fileId)) {
+                        storage.getConfirmedChunks().remove(key);
+                    }
+                }
+
                 return;
             }
             
@@ -84,7 +93,7 @@ public class DeleteHandler implements Runnable {
         else{
 
             // Remove confirmations for the deleted file
-             for (ChunkKey key : storage.getConfirmedChunks().keySet()) {
+            for (ChunkKey key : storage.getConfirmedChunks().keySet()) {
                 if (key.getFileId().equals(fileId)) {
                     storage.getConfirmedChunks().remove(key);
                 }

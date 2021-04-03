@@ -35,6 +35,17 @@ public class ControlChannel extends Channel {
         return new DatagramPacket(message, message.length, this.address, this.port);
     }
 
+    public DatagramPacket getChunkEnhancedPacket(String protocolVersion, int senderId, int tcpPort, ChunkKey chunkKey){
+        byte[] message = super.generateMessage(
+            protocolVersion,
+            "GETCHUNK",
+            senderId, 
+            chunkKey.getFileId(), 
+            new String[]{Integer.toString(chunkKey.getChunkNum()), Integer.toString(tcpPort)});
+
+        return new DatagramPacket(message, message.length, this.address, this.port);
+    }
+
     public DatagramPacket getDeletePacket(String protocolVersion, int senderId, String fileId){
         byte[] message = super.generateMessage(
             protocolVersion, 

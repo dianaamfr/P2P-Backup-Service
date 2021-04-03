@@ -25,9 +25,8 @@ public class RestoreHandler implements Runnable {
             this.peer.removePendingRestore(this.fileId);
             System.out.println("Storing");
             this.peer.getStorage().storeRestored(this.fileId, this.chunks);
-        } catch (IOException e) {
-
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -126,4 +126,4 @@ delout:
 killall: kill clean delout
 
 extra:
-	java g04.Peer 2.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+	java g04.Peer 2.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &

@@ -7,8 +7,13 @@ public class Message {
     private String fileId;
 
     private int chunkNo;
+    private int tcpPort;
     private int replicationDegree;
     private byte[] body;
+
+    public Message(){
+        
+    }
 
     public Message(String version, String messageType, int senderId, String fileId){
         this.version = version;
@@ -17,6 +22,8 @@ public class Message {
         this.fileId = fileId;
         this.chunkNo = -1;
         this.body = new byte[0];
+        this.tcpPort = -1;
+        this.replicationDegree = -1;
     }
 
     public String getVersion() {
@@ -75,6 +82,14 @@ public class Message {
         this.replicationDegree = replicationDegree;
     }
 
+    public int getTcpPort() {
+        return tcpPort;
+    }
+
+    public void setTcpPort(int tcpPort) {
+        this.tcpPort = tcpPort;
+    }
+
 	@Override
 	public String toString() {
 		String str = "";
@@ -88,6 +103,4 @@ public class Message {
 
         return str;
 	}
-
-    
 }
