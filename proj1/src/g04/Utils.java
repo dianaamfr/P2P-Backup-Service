@@ -29,6 +29,25 @@ public class Utils {
     public final static int MIN_DELAY = 0;
     public final static int MAX_DELAY = 401;
 
+    public enum Protocol {
+        BACKUP,
+        RESTORE,
+        DELETE,
+        RECLAIM,
+        BACKUP_EN,
+        RESTORE_EN,
+        DELETE_EN
+    }
+
+    public enum MessageType {
+        PUTCHUNK,
+        STORED,
+        GETCHUNK,
+        CHUNK,
+        DELETE,
+        REMOVED
+    }
+
     public final static int getRandomDelay(){
         return ThreadLocalRandom.current().nextInt(MIN_DELAY, MAX_DELAY);
     }
@@ -63,8 +82,30 @@ public class Utils {
 	}
     
     public static void usage(String message) {
-        System.err.println(message);
-        System.err.println(
-                "Usage: java Peer <protocol-version> <peer-id> <service-ap> <mc-address> <mc-port> <mdb-address> <mdb-port> <mdr-address> <mdr-port>");
+        error(message);
+        System.err.println("Usage: java Peer <protocol-version> <peer-id> <service-ap> <mc-address> <mc-port> <mdb-address> <mdb-port> <mdr-address> <mdr-port>");
+    }
+
+    public static void error(String message) {
+        System.err.println("ERROR :: " + message);
+    }
+
+    public static void log(String message) {
+        System.out.println("LOG :: Peer" + PEER_ID + " " + message);
+    }
+
+    public static void receiveLog(Protocol protocol, MessageType messageType, int senderId, String message) {
+        System.out.println(protocol.name() + " :: Peer" + PEER_ID + " received " + messageType.name() + " " + message + " from Peer" + senderId);
+    }
+
+    public static void sendLog(Protocol protocol, MessageType messageType, String message) {
+        System.out.println(protocol.name() + " :: Peer" + PEER_ID + " sent " + messageType.name() + " " + message);
+    }
+
+    public static void protocolError(Protocol protocol, MessageType messageType, String message){
+        String str = protocol.name() + " ERROR :: Peer" + PEER_ID;
+        if(messageType != null)
+            str += " failed to send " + messageType.name(); 
+        System.err.println(str + " " + message);
     }
 }

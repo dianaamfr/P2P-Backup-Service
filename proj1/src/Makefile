@@ -1,4 +1,5 @@
 
+# Hostname and ports for the multicast channels
 HOSTNAME = 225.10.10.10
 MC_PORT = 8013
 MDB_PORT = 8011
@@ -18,18 +19,30 @@ kill:
 	killall rmiregistry
 	killall java
 
+delout:
+	rm -r g04/output/*
+
+killall: kill clean delout
+
+# 4 Peers with version 1.0
 peers: all rmi
 	java g04.Peer 1.0 0 peer0 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 1 peer1 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 1.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 
+# 4 Peers with version 2.0
 peers2: all rmi
 	java g04.Peer 2.0 0 peer0 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 2.0 1 peer1 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 2.0 2 peer2 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 	java g04.Peer 2.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
 
+# 1 Peer
+extra:
+	java g04.Peer 2.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &
+
+# Backup tests
 backup: 
 	java g04.TestApp peer0 BACKUP Makefile 3
 
@@ -54,6 +67,10 @@ backup6:
 backup7: 
 	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3
 
+backup10mb: 
+	java g04.TestApp peer1 BACKUP g04/test/test10mb.zip 3
+
+# Restore tests
 restore: 
 	java g04.TestApp peer0 RESTORE Makefile
 
@@ -78,6 +95,7 @@ restore6:
 restore7: 
 	java g04.TestApp peer1 RESTORE test7.mp3
 
+# Delete tests
 delete: 
 	java g04.TestApp peer0 DELETE Makefile
 
@@ -102,12 +120,14 @@ delete6:
 delete7: 
 	java g04.TestApp peer1 DELETE test7.mp3
 
+# Reclaim tests
 reclaim_decrease2:
 	java g04.TestApp peer2 RECLAIM 70
 
 reclaim_increase2:
 	java g04.TestApp peer2 RECLAIM 5000
 
+# State tests
 state:
 	java g04.TestApp peer0 STATE
 
@@ -119,11 +139,3 @@ state2:
 
 state3:
 	java g04.TestApp peer3 STATE
-
-delout:
-	rm -r g04/output/*
-
-killall: kill clean delout
-
-extra:
-	java g04.Peer 2.0 3 peer3 $(HOSTNAME) $(MC_PORT) $(HOSTNAME) $(MDB_PORT) $(HOSTNAME) $(MDR_PORT) &

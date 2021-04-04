@@ -1,6 +1,5 @@
 package g04.channel.handlers;
 
-import java.io.IOException;
 import java.util.TreeSet;
 
 import g04.Peer;

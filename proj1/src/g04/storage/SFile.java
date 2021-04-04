@@ -32,6 +32,11 @@ public class SFile implements Serializable {
         this.numberOfChunks = 0;
     }
 
+    /**
+     * Divides the file into chunks
+     * @return an array of chunks
+     * @throws IOException
+     */
     public ArrayList<Chunk> generateChunks() throws IOException{
 
         // Check file size
@@ -65,6 +70,13 @@ public class SFile implements Serializable {
         return chunks;
     }
 
+    /** Compare two files by their names */
+    @Override
+    public boolean equals(Object obj) {
+        return this.fileName.equals(((SFile) obj).getFileName());
+    }
+    
+    // Getters
     public String getFileName() {
         return fileName;
     }
@@ -81,13 +93,7 @@ public class SFile implements Serializable {
         return this.fileSize;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        return this.fileName.equals(((SFile) obj).getFileName());
-    }
-
     public int getNumberOfChunks(){
         return this.numberOfChunks;
     }
-
 }

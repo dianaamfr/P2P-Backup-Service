@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import g04.Utils.Protocol;
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
@@ -28,10 +29,8 @@ import g04.storage.Storage;
 
 public class Peer implements IRemote {
 
-    private ChannelAggregator channelAggregator;
-    /** Aggregates the Control, Backup and Restore multicast channels */
-    private Storage storage;
-    /** Stores data that must persist between executions */
+    private ChannelAggregator channelAggregator; /** Control, Backup and Restore multicast channels */
+    private Storage storage; /** Stores data that must persist between executions */
     private ScheduledThreadPoolExecutor scheduler;
 
     // Auxiliar data structures for RESTORE
@@ -39,13 +38,10 @@ public class Peer implements IRemote {
                                                                             * For each file pending restore, keeps the
                                                                             * chunks already restored (initiator-peer)
                                                                             */
-    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests;
-    /** Keeps track of restore requests (non-initiator peers) */
+    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; /** Keeps track of restore requests (non-initiator peers) */
 
     // Auxiliar data structures for REMOVED
-    private ConcurrentHashMap<ChunkKey, Integer> removedChunks;
-
-    /** Keeps track of removed chunks */
+    private ConcurrentHashMap<ChunkKey, Integer> removedChunks; /** Keeps track of removed chunks */
 
     public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
@@ -64,16 +60,18 @@ public class Peer implements IRemote {
     }
 
     public static void main(String[] args) throws IOException {
-
+        // Validate number of arguments
         if (args.length != 9) {
             Utils.usage("Wrong number of arguments");
             System.exit(1);
         }
 
+        // Parse peer version, id and access point
         Utils.PROTOCOL_VERSION = args[0];
         Utils.PEER_ID = Integer.parseInt(args[1]);
         String peerAp = args[2];
 
+        // Parse the addresses and ports of the multicast channels
         String mcAddress = "", mdbAddress = "", mdrAddress = "";
         int mcPort = 0, mdbPort = 0, mdrPort = 0;
 
@@ -91,12 +89,13 @@ public class Peer implements IRemote {
             mdrAddress = args[7];
             mdrPort = Integer.parseInt(args[8]);
 
+            // Create an aggregator for the channels
             channelAggregator = new ChannelAggregator(mcAddress, mcPort, mdbAddress, mdbPort, mdrAddress, mdrPort);
 
             registry = LocateRegistry.getRegistry();
 
         } catch (NumberFormatException e) {
-            Utils.usage("Number Format Exception");
+            Utils.usage("The ports of the multicast channels must be integers");
             System.exit(1);
         } catch (RemoteException e) {
             registry = LocateRegistry.createRegistry(1099);
@@ -109,7 +108,7 @@ public class Peer implements IRemote {
         IRemote remote = (IRemote) UnicastRemoteObject.exportObject(peer, 0);
         registry.rebind(peerAp, remote);
 
-        System.out.println("Peer with id " + Utils.PEER_ID + " registered to service with name " + peerAp);
+        Utils.log("registered with name " + peerAp);
 
         // Initiate Channels
         channelAggregator.run(peer);
@@ -126,18 +125,16 @@ public class Peer implements IRemote {
 
             ArrayList<Chunk> chunks = file.generateChunks();
 
-            // Send putchunk message
+            // Send PUTCHUNK message for each chunk of the file
             for (Chunk chunk : chunks) {
                 DatagramPacket packet = this.getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
                         chunk);
-                // Get confirmation messages or resend putchunk
+                // Get confirmation messages or resend PUTCHUNK
                 scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));
             }
 
-        } catch (NoSuchAlgorithmException e) {
-        } catch (IOException e) {
-            // Throw error message - file error
-            e.printStackTrace();
+        } catch (Exception e) {
+            Utils.protocolError(Protocol.BACKUP,null,"failed to process the file " + fileName);
         }
     }
 
@@ -154,17 +151,17 @@ public class Peer implements IRemote {
 
                 // Send GETCHUNK message for each chunk of the file
                 for (ChunkKey key : this.storage.getConfirmedChunks().keySet()) {
-                    if(key.getFileId().equals(file.getFileId())){
+                    if (key.getFileId().equals(file.getFileId())) {
                         DatagramPacket packet;
 
-                        if(Utils.PROTOCOL_VERSION.equals("2.0")){
-                            packet = this.getControlChannel()
-                                .getChunkEnhancedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, this.getRestoreChannel().getTcpPort(), key);
+                        if (Utils.PROTOCOL_VERSION.equals("2.0")) {
+                            packet = this.getControlChannel().getChunkEnhancedPacket(Utils.PROTOCOL_VERSION,
+                                    Utils.PEER_ID, this.getRestoreChannel().getTcpPort(), key);
+                        } else {
+                            packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
+                                    key);
                         }
-                        else { 
-                            packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, key);
-                        }
-                        
+
                         System.out.println("GETCHUNK " + key.getChunkNum());
                         this.getControlChannel().sendMessage(packet);
                     }

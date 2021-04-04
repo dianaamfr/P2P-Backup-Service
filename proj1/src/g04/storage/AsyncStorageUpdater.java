@@ -9,6 +9,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.Future;
 
+import g04.Utils;
+
+/**
+ * Serializes the storage and saves it in non-volatile memory
+ */
 public class AsyncStorageUpdater implements Runnable {
 
     private Storage storage;
@@ -39,9 +44,9 @@ public class AsyncStorageUpdater implements Runnable {
             channel.close();
             oos.close();
             baos.close();
-            // System.out.println("Serializing Storage for peer " +  Utils.PEER_ID);
+
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.error("Failed to save the storage in non-volatile memory");
         }
     }
 

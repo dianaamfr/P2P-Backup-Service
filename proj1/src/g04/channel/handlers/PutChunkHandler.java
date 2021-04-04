@@ -4,11 +4,19 @@ import java.io.IOException;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.ControlChannel;
 import g04.channel.receivers.Message;
 import g04.storage.Chunk;
 import g04.storage.Storage;
 
+/**
+ * Stores the chunk if it isn't already stored and there is space for it (version 1.0). 
+ * In version 2.0 it also checks if the desired replication degree of the file was already achieved, and
+ * if it was, it does not store it.
+ * If the file was stored now or previously, the peer sends a STORED confirmation in the Control Channel
+ */
 public class PutChunkHandler implements Runnable {
 
     private Peer peer;
@@ -29,10 +37,12 @@ public class PutChunkHandler implements Runnable {
 
         boolean stored = true;
 
-        // If it hasn't stored the chunk yet
+        // Check if the chunk was already stored
         if (!storage.hasStoredChunk(chunk.getChunkKey())) {
             try {
-                if (storage.hasCapacity(chunk.getChunkKey().getSize())) { // ver capacidade e rep degree
+                // Check if there is free capacity
+                if (storage.hasCapacity(chunk.getChunkKey().getSize())) {
+                    // In version 2.0, check if the chunk has the desired replication degree
                     if(this.message.getVersion().equals("2.0") && (storage.getConfirmedChunks(chunk.getChunkKey()) >= chunk.getReplicationDegree())){
                         return;
                     }
@@ -42,12 +52,12 @@ public class PutChunkHandler implements Runnable {
                     storage.addChunk(chunk.getChunkKey());
                 } else {
                     stored = false;
-                    System.out.println("Peer" + Utils.PEER_ID + ": NO CAPACITY TO STORE CHUNK " + chunk.getChunkNum());
+                    Utils.protocolError(Protocol.BACKUP, MessageType.PUTCHUNK, "no capacity to store chunk" + chunk.getChunkNum());
                 }
 
             } catch (IOException e) {
-                // Failed at storing the chunk
-                e.printStackTrace();
+                stored = false;
+                Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "failed to store chunk" + chunk.getChunkNum());
             }
         }
 
@@ -59,7 +69,7 @@ public class PutChunkHandler implements Runnable {
                 controlChannel.sendMessage(
                         controlChannel.storedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk.getChunkKey()));
             } catch (IOException e) {
-                System.err.println("Failed to send STORED " + chunk.getChunkNum());
+                Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "failed to send chunk" + chunk.getChunkNum());
             }
         }
 

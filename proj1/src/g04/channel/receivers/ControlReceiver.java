@@ -6,12 +6,17 @@ import java.util.concurrent.TimeUnit;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.handlers.DeleteHandler;
 import g04.channel.handlers.GetChunkHandler;
 import g04.channel.handlers.RemoveHandler;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
 
+/**
+ * Listens to messages sent in the Control Multicast Channel
+ */
 public class ControlReceiver extends MessageReceiver {
 
     public ControlReceiver(Peer peer) {
@@ -40,71 +45,72 @@ public class ControlReceiver extends MessageReceiver {
 
             // Process received message
             switch (message.getMessageType()) {
-            case "STORED":
 
-                System.out.println("Peer" + Utils.PEER_ID + " received STORED from " + message.getSenderId()
-                        + " for chunk " + chunkKey.getChunkNum());
+                case "STORED":
 
-                // Add peer confirmation for a chunk
-                storage.addStoredConfirmation(chunkKey, message.getSenderId());
+                    Utils.receiveLog(Protocol.BACKUP, MessageType.STORED, message.getSenderId(), 
+                        "for chunk" + chunkKey.getChunkNum());
+                        
+                    // Add peer confirmation for a chunk
+                    storage.addStoredConfirmation(chunkKey, message.getSenderId());
 
-                break;
+                    break;
 
-            case "GETCHUNK":
-                if ((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)) {
-                    this.peer.addRestoreRequest(chunkKey);
+                case "GETCHUNK":
+                    if ((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)) {
+                        this.peer.addRestoreRequest(chunkKey);
 
-                    if(Utils.PROTOCOL_VERSION.equals("2.0") && message.getVersion().equals("2.0")){
-                        this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey, message.getTcpPort(), packet.getAddress()), Utils.getRandomDelay(),
-                        TimeUnit.MILLISECONDS);
+                        if(Utils.PROTOCOL_VERSION.equals("2.0") && message.getVersion().equals("2.0")){
+                            this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey, message.getTcpPort(), packet.getAddress()), Utils.getRandomDelay(),
+                            TimeUnit.MILLISECONDS);
+                        }
+                        else{
+                            this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(),
+                            TimeUnit.MILLISECONDS);
+                        }
+
                     }
-                    else{
-                        this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(),
-                        TimeUnit.MILLISECONDS);
-                    }
+                    break;
 
-                }
-                break;
+                case "DELETE":
 
-            case "DELETE":
+                    System.out.println("Peer" + Utils.PEER_ID + " received DELETE from " + message.getSenderId());
+                    
+                    this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
+                    break;
 
-                System.out.println("Peer" + Utils.PEER_ID + " received DELETE from " + message.getSenderId());
-                
-                this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
-                break;
+                case "REMOVED":
+                    if ((message.getSenderId() != Utils.PEER_ID)) {
+                        int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
 
-            case "REMOVED":
-                if ((message.getSenderId() != Utils.PEER_ID)) {
-                    int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
+                        if (storage.hasStoredChunk(chunkKey)) {
+                            int desiredReplicationDegree = storage.getStoredChunks().get(chunkKey);
 
-                    if (storage.hasStoredChunk(chunkKey)) {
-                        int desiredReplicationDegree = storage.getStoredChunks().get(chunkKey);
+                            if (confirmations < desiredReplicationDegree) {
+                                this.peer.addRemovedChunk(chunkKey);
 
-                        if (confirmations < desiredReplicationDegree) {
-                            this.peer.addRemovedChunk(chunkKey);
+                                chunkKey.setReplicationDegree(desiredReplicationDegree);
 
-                            chunkKey.setReplicationDegree(desiredReplicationDegree);
-
-                            // Start PUTCHUNK protocol to ensure the desired replication degree
-                            this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey),
-                                    Utils.getRandomDelay(), TimeUnit.MILLISECONDS);
+                                // Start PUTCHUNK protocol to ensure the desired replication degree
+                                this.peer.getScheduler().schedule(new RemoveHandler(this.peer, chunkKey),
+                                        Utils.getRandomDelay(), TimeUnit.MILLISECONDS);
+                            }
                         }
                     }
-                }
-                break;
+                    break;
 
-            case "DELETED":
+                case "DELETED":
 
-                if (Utils.PROTOCOL_VERSION.equals("2.0") && (message.getSenderId() != Utils.PEER_ID)) {
+                    if (Utils.PROTOCOL_VERSION.equals("2.0") && (message.getSenderId() != Utils.PEER_ID)) {
 
-                    System.out.println("Peer" + Utils.PEER_ID + " received DELETED from " + message.getSenderId());
+                        System.out.println("Peer" + Utils.PEER_ID + " received DELETED from " + message.getSenderId());
 
-                    // Confirm deletion of a file from a peer
-                    storage.removePendingDeletion(message.getFileId(), message.getSenderId());
-                }
-                break;
-            default:
-                break;
+                        // Confirm deletion of a file from a peer
+                        storage.removePendingDeletion(message.getFileId(), message.getSenderId());
+                    }
+                    break;
+                default:
+                    break;
             }
 
         }

@@ -16,6 +16,9 @@ public class BackupReceiver extends MessageReceiver {
     }
 
     @Override
+    /**
+     * Listens to PUTCHUNK messages in the Backup Multicast Channel
+     */
     public void run() {
 
         while (true) {
@@ -32,16 +35,20 @@ public class BackupReceiver extends MessageReceiver {
 
             Message message = this.parseMessage(packet);
 
-            // Receive Putchunk - don't store his own chunks
+            // Receive PUTCHUNK from other peers - don't store his own chunks
             if (message.getMessageType().equals("PUTCHUNK") && (message.getSenderId() != Utils.PEER_ID)
                     && !this.peer.getStorage().hasFile(message.getFileId())) {
 
                 ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
-
+                
+                // Other peer has started a PUTCHUNK protocol for a removed chunk and this peer 
+                // was also going to start one
                 if (this.peer.hasRemovedChunk(chunkKey)) {
+                    // Avoid starting yet another backup subprotocol
                     this.peer.deleteRemovedChunk(chunkKey);
                 }
 
+                // Wait a random delay before sending the STORED confirmation
                 this.peer.getScheduler().schedule(new PutChunkHandler(this.peer, message), Utils.getRandomDelay(),
                         TimeUnit.MILLISECONDS);
             }

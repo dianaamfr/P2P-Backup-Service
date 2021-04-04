@@ -13,6 +13,13 @@ public class BackupChannel extends Channel {
         super(address, port);
     }
     
+    /**
+     * Generate a PUTCHUNK DatagramPacket
+     * @param protocolVersion
+     * @param senderId
+     * @param chunk
+     * @return PUTCHUNK DatagramPacket
+     */
     public DatagramPacket putChunkPacket(String protocolVersion, int senderId, Chunk chunk){
         byte[] message = super.generateMessage(
             protocolVersion, 

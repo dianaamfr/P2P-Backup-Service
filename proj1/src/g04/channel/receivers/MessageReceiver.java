@@ -17,6 +17,11 @@ public abstract class MessageReceiver implements Runnable {
     @Override
     public abstract void run();
 
+    /**
+     * Parses a protocol message
+     * @param packet
+     * @return the message
+     */
     public Message parseMessage(DatagramPacket packet) {
         
         // Parse Header
