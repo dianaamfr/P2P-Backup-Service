@@ -5,10 +5,15 @@ import java.net.DatagramPacket;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.handlers.RestoreHandler;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
 
+/**
+ * Listens to messages sent to the Restore Multicast Channel
+ */
 public class RestoreReceiver extends MessageReceiver {
 
     public RestoreReceiver(Peer peer) {
@@ -35,19 +40,20 @@ public class RestoreReceiver extends MessageReceiver {
 
             ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
-            // Receive CHUNK for initiator-peer
+            // Initiator-peer: receive CHUNK
             if (this.peer.isPendingRestore(chunkKey.getFileId())) {
-                System.out.println("Initiator: received CHUNK " +  message.getChunkNo());
+                Utils.receiveLog(Protocol.RESTORE, MessageType.CHUNK, message.getSenderId(), Integer.toString(message.getChunkNo()));
+                
                 this.peer.addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
 
                 // Restore file if all chunks have been restored
                 if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
-                    System.out.println("All chunks of a file ready");
+                    Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
                     this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
                 }
             }
 
-            // Receive CHUNK for other peers
+            // Other peers: listen to CHUNK messages sent by other, to avoid flooding the host
             if ((message.getSenderId() != Utils.PEER_ID) && this.peer.getStorage().hasStoredChunk(chunkKey)
                     && this.peer.hasRestoreRequest(chunkKey)) {
                 this.peer.removeRestoreRequest(chunkKey);

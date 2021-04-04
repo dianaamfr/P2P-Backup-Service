@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import g04.Utils.MessageType;
 import g04.Utils.Protocol;
 import g04.channel.BackupChannel;
 import g04.channel.ChannelAggregator;
@@ -146,6 +147,7 @@ public class Peer implements IRemote {
 
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {
+                
                 // Add the file to the pending restore requests
                 this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
 
@@ -154,25 +156,27 @@ public class Peer implements IRemote {
                     if (key.getFileId().equals(file.getFileId())) {
                         DatagramPacket packet;
 
+                        // Version 2.0: GETCHUNK packet with TCP port
                         if (Utils.PROTOCOL_VERSION.equals("2.0")) {
                             packet = this.getControlChannel().getChunkEnhancedPacket(Utils.PROTOCOL_VERSION,
                                     Utils.PEER_ID, this.getRestoreChannel().getTcpPort(), key);
-                        } else {
+                        } 
+                        // Version 1.0
+                        else {
                             packet = this.getControlChannel().getChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
                                     key);
                         }
 
-                        System.out.println("GETCHUNK " + key.getChunkNum());
                         this.getControlChannel().sendMessage(packet);
+                        Utils.sendLog(Protocol.RESTORE, MessageType.GETCHUNK, "for chunk" + key.getChunkNum());
                     }
                 }
             } else {
-                throw new Exception("SFile is null");
+                // The peer did not initiate a backup for the file or the file was deleted
+                Utils.protocolError(Protocol.RESTORE, null, "doesn't recognize the file " + fileName);
             }
         } catch (IOException e) {
-            System.err.println("Failed to send GETCHUNK for file " + fileName);
-        } catch (Exception e) {
-            System.err.println("File not found: " + e.getMessage());
+            Utils.protocolError(Protocol.RESTORE, MessageType.GETCHUNK, "for the file " + fileName);
         }
     }
 

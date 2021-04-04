@@ -17,7 +17,7 @@ public class BackupReceiver extends MessageReceiver {
 
     @Override
     /**
-     * Listens to PUTCHUNK messages in the Backup Multicast Channel
+     * Listens to PUTCHUNK messages sent to the Backup Multicast Channel
      */
     public void run() {
 

@@ -3,6 +3,8 @@ package g04.channel.handlers;
 import java.util.TreeSet;
 
 import g04.Peer;
+import g04.Utils;
+import g04.Utils.Protocol;
 import g04.storage.Chunk;
 
 public class RestoreHandler implements Runnable {
@@ -22,10 +24,9 @@ public class RestoreHandler implements Runnable {
     public void run() {
         try {
             this.peer.removePendingRestore(this.fileId);
-            System.out.println("Storing");
             this.peer.getStorage().storeRestored(this.fileId, this.chunks);
         } catch (Exception e) {
-            e.printStackTrace();
+            Utils.protocolError(Protocol.RESTORE, null, "failed to store file " + this.fileId);
         }
     }
 }

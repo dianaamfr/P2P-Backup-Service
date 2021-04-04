@@ -57,7 +57,7 @@ public class PutChunkHandler implements Runnable {
 
             } catch (IOException e) {
                 stored = false;
-                Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "failed to store chunk" + chunk.getChunkNum());
+                Utils.protocolError(Protocol.BACKUP, null, "failed to store chunk" + chunk.getChunkNum());
             }
         }
 
@@ -69,7 +69,7 @@ public class PutChunkHandler implements Runnable {
                 controlChannel.sendMessage(
                         controlChannel.storedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk.getChunkKey()));
             } catch (IOException e) {
-                Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "failed to send chunk" + chunk.getChunkNum());
+                Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "for chunk" + chunk.getChunkNum());
             }
         }
 

@@ -20,6 +20,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.Future;
 
 import g04.Utils;
+import g04.Utils.Protocol;
 
 public class Storage implements Serializable {
 
@@ -256,7 +257,7 @@ public class Storage implements Serializable {
 
         channel.close();
 
-        System.out.println("File " + this.backupFiles.get(fileId).getFileName() + " restored");
+        Utils.protocolLog(Protocol.RESTORE, "restored file " + this.backupFiles.get(fileId).getFileName());
     }
 
     /**

@@ -33,10 +33,7 @@ public class Utils {
         BACKUP,
         RESTORE,
         DELETE,
-        RECLAIM,
-        BACKUP_EN,
-        RESTORE_EN,
-        DELETE_EN
+        RECLAIM
     }
 
     public enum MessageType {
@@ -45,7 +42,8 @@ public class Utils {
         GETCHUNK,
         CHUNK,
         DELETE,
-        REMOVED
+        REMOVED,
+        DELETED
     }
 
     public final static int getRandomDelay(){
@@ -94,14 +92,44 @@ public class Utils {
         System.out.println("LOG :: Peer" + PEER_ID + " " + message);
     }
 
+    /**
+     * Print information about a message received by the peer
+     * @param protocol
+     * @param messageType
+     * @param senderId
+     * @param message
+     */
     public static void receiveLog(Protocol protocol, MessageType messageType, int senderId, String message) {
         System.out.println(protocol.name() + " :: Peer" + PEER_ID + " received " + messageType.name() + " " + message + " from Peer" + senderId);
     }
 
+    /**
+     * Print information about a message sent by the peer
+     * @param protocol
+     * @param messageType
+     * @param message
+     */
     public static void sendLog(Protocol protocol, MessageType messageType, String message) {
         System.out.println(protocol.name() + " :: Peer" + PEER_ID + " sent " + messageType.name() + " " + message);
     }
 
+    /**
+     * 
+     * Print information about a specifc protocol
+     * @param protocol
+     * @param message
+     */
+    public static void protocolLog(Protocol protocol, String message){
+        System.out.println(protocol.name() + " :: Peer" + PEER_ID + " " + message);
+    }
+
+    /**
+     * 
+     * Print information about an error that occurred in a specifc protocol
+     * @param protocol
+     * @param messageType
+     * @param message
+     */
     public static void protocolError(Protocol protocol, MessageType messageType, String message){
         String str = protocol.name() + " ERROR :: Peer" + PEER_ID;
         if(messageType != null)

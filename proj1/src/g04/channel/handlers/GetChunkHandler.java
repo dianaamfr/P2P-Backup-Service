@@ -7,11 +7,16 @@ import java.net.Socket;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.RestoreChannel;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
 
+/**
+ * Send CHUNK message using the Multicast Restore Channel, in version 1.0, or TCP, in version 2.0 
+ */
 public class GetChunkHandler implements Runnable {
 
     private Peer peer;
@@ -19,11 +24,23 @@ public class GetChunkHandler implements Runnable {
     private int tcpPort = -1;
     private InetAddress address = null;
 
+    /**
+     * Constructor for version 1.0 (uses Multicast Restore Channel)
+     * @param peer
+     * @param chunkKey
+     */
     public GetChunkHandler(Peer peer, ChunkKey chunkKey) {
         this.peer = peer;
         this.chunkKey = chunkKey;
     }
 
+    /**
+     * Constructor for version 2.0 (uses TCP)
+     * @param peer
+     * @param chunkKey
+     * @param tcpPort
+     * @param address
+     */
     public GetChunkHandler(Peer peer, ChunkKey chunkKey, int tcpPort, InetAddress address){
         this(peer,chunkKey);
         this.address = address;
@@ -33,7 +50,7 @@ public class GetChunkHandler implements Runnable {
     @Override
     public void run() {
 
-        // If the chunk was already restored exit
+        // Check if the chunk was already restored by other peer. Exit if it was
         if(!this.peer.hasRestoreRequest(this.chunkKey)){
             return;
         }
@@ -41,9 +58,9 @@ public class GetChunkHandler implements Runnable {
         Storage storage = this.peer.getStorage();
         Chunk chunk = new Chunk();
 		try {
+            // Read the chunk from non-volatile memory
 			chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
 
-            // Send CHUNK message
             RestoreChannel restoreChannel = this.peer.getRestoreChannel();
             
             DatagramPacket packet = restoreChannel.chunkPacket(
@@ -52,7 +69,7 @@ public class GetChunkHandler implements Runnable {
                     chunk);
 
             // Version 2.0: use TCP to send CHUNK
-            if(Utils.PROTOCOL_VERSION.equals("2.0") && this.address != null && this.tcpPort >= 0){
+            if(Utils.PROTOCOL_VERSION.equals("2.0") && (this.address != null) && (this.tcpPort >= 0)){
                 Socket socket = new Socket(this.address, this.tcpPort);
                 DataOutputStream out = new DataOutputStream(socket.getOutputStream());
                 out.write(packet.getData());
@@ -64,12 +81,13 @@ public class GetChunkHandler implements Runnable {
                 restoreChannel.sendMessage(packet);
             }
 
+            Utils.sendLog(Protocol.RESTORE, MessageType.CHUNK, "for chunk" + chunk.getChunkNum());
+
+            // Remove the chunk from the ones that are waiting to be restored
             this.peer.removeRestoreRequest(chunkKey);
 
-            System.out.println("Peer " + Utils.PEER_ID + ": sent CHUNK " + chunk.getChunkNum());
-
 		} catch (Exception e) {
-            System.out.println("Failed to send CHUNK " + chunk.getChunkNum());
+            Utils.protocolError(Protocol.RESTORE, MessageType.CHUNK, "for chunk" + chunk.getChunkNum());
 		}
 
     }

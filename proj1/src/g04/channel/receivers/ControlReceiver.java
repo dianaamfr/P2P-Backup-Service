@@ -15,7 +15,7 @@ import g04.storage.ChunkKey;
 import g04.storage.Storage;
 
 /**
- * Listens to messages sent in the Control Multicast Channel
+ * Listens to messages sent to the Control Multicast Channel
  */
 public class ControlReceiver extends MessageReceiver {
 
@@ -57,13 +57,16 @@ public class ControlReceiver extends MessageReceiver {
                     break;
 
                 case "GETCHUNK":
+                    // Check if the peer has the requested chunk
                     if ((message.getSenderId() != Utils.PEER_ID) && storage.hasStoredChunk(chunkKey)) {
                         this.peer.addRestoreRequest(chunkKey);
 
+                        // Version 2.0: Schedule task to send CHUNK using TCP (requires TCP port and address)
                         if(Utils.PROTOCOL_VERSION.equals("2.0") && message.getVersion().equals("2.0")){
                             this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey, message.getTcpPort(), packet.getAddress()), Utils.getRandomDelay(),
                             TimeUnit.MILLISECONDS);
                         }
+                        // Version 1.0: Schedule task to send CHUNK using the Restore Multicast Channel
                         else{
                             this.peer.getScheduler().schedule(new GetChunkHandler(this.peer, chunkKey), Utils.getRandomDelay(),
                             TimeUnit.MILLISECONDS);
