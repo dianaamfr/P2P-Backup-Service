@@ -30,15 +30,19 @@ public class TcpRestoreHandler implements Runnable {
         Message message = new Message();
 
         // Read CHUNK message from TCP socket
+        // TODO: decide how to handle this exceptions
 		try {
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
 			byte[] bytes = in.readAllBytes();
-            message = this.receiver.parseMessage(bytes);
+            message = this.receiver.parseMessage(bytes, bytes.length);
             in.close();
 		} catch (IOException e) {
 			Utils.error("I/O exception when receiving messages in the TCP socket");
-		}
+		} catch (Exception e) {
+            Utils.error(e.getMessage());
+        }
 
+        
         ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
         // Initiator-peer: receive CHUNK

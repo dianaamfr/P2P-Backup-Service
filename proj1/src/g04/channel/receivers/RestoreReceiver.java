@@ -28,15 +28,19 @@ public class RestoreReceiver extends MessageReceiver {
             byte[] messageBytes = new byte[Utils.PACKET_SIZE];
 
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
-            
+            Message message = new Message();
+
+            // TODO: decide how to handle this exceptions
             try {
                 this.peer.getRestoreChannel().getSocket().receive(packet);
+                message = this.parseMessage(packet.getData(),packet.getLength());
 
             } catch (IOException e) {
                 Utils.error("I/O exception when receiving messages in the MDR");
+            } catch (Exception e) {
+                Utils.error(e.getMessage());
             }
-
-            Message message = this.parseMessage(packet);
+ 
 
             ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 

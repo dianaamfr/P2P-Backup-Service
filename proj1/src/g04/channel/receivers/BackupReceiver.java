@@ -26,14 +26,17 @@ public class BackupReceiver extends MessageReceiver {
             byte[] messageBytes = new byte[Utils.PACKET_SIZE];
 
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
+            Message message = new Message();
 
+            // TODO: decide how to handle this exceptions
             try {
                 this.peer.getBackupChannel().getSocket().receive(packet);
+                message = this.parseMessage(packet.getData(), packet.getLength());
             } catch (IOException e) {
                 Utils.error("I/O exception when receiving messages in the MDB");
-            }
-
-            Message message = this.parseMessage(packet);
+			} catch (Exception e) {
+				message = null;
+			}
 
             // Receive PUTCHUNK from other peers - don't store his own chunks
             if (message.getMessageType().equals("PUTCHUNK") && (message.getSenderId() != Utils.PEER_ID)
