@@ -88,10 +88,6 @@ public class Utils {
         System.err.println("ERROR :: " + message);
     }
 
-    public static void log(String message) {
-        System.out.println("LOG :: Peer" + PEER_ID + " " + message);
-    }
-
     /**
      * Print information about a message received by the peer
      * @param protocol

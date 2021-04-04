@@ -109,7 +109,7 @@ public class Peer implements IRemote {
         IRemote remote = (IRemote) UnicastRemoteObject.exportObject(peer, 0);
         registry.rebind(peerAp, remote);
 
-        Utils.log("registered with name " + peerAp);
+        System.out.println("REGISTRY :: Peer" + Utils.PEER_ID + " registered with name " + peerAp);
 
         // Initiate Channels
         channelAggregator.run(peer);
@@ -176,6 +176,7 @@ public class Peer implements IRemote {
                 Utils.protocolError(Protocol.RESTORE, null, "doesn't recognize the file " + fileName);
             }
         } catch (IOException e) {
+            // Failed to send GETCHUNK
             Utils.protocolError(Protocol.RESTORE, MessageType.GETCHUNK, "for the file " + fileName);
         }
     }
@@ -189,24 +190,25 @@ public class Peer implements IRemote {
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {
 
-                // Add file to deleted files
+                // Version 2.0: Add file to deleted files
                 if (Utils.PROTOCOL_VERSION.equals("2.0")) {
                     this.storage.addDeletedFile(file.getFileId());
                 }
 
                 DatagramPacket packet = this.getControlChannel().getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
                         file.getFileId());
+
                 // Send DELETE message
-                System.out.println("DELETE " + file.getFileId());
                 this.getControlChannel().sendMessage(packet);
+                Utils.sendLog(Protocol.DELETE, MessageType.DELETE, "for the file " + fileName);
 
             } else {
-                throw new Exception("SFile is null");
+                // The peer did not initiate a backup for the file or the file was already deleted
+                Utils.protocolError(Protocol.DELETE, null, "doesn't recognize the file " + fileName);
             }
         } catch (IOException e) {
-            System.err.println("Failed to send DELETE for file " + fileName);
-        } catch (Exception e) {
-            System.err.println("File not found: " + e.getMessage());
+            // Failed to send DELETE
+            Utils.protocolError(Protocol.DELETE, MessageType.DELETE, "for the file " + fileName);
         }
 
     }
@@ -221,11 +223,11 @@ public class Peer implements IRemote {
     public void state() throws RemoteException {
 
         /*
-         * For each file whose backup it has initiated: The file pathname The backup
-         * service id of the file The desired replication degree For each chunk of the
-         * file: Its id Its perceived replication degree
+         * For each file whose backup it has initiated: 
+         * the file pathname, the backup service id of the file and the desired replication degree. 
+         * For each chunk of the file: its id and its perceived replication degree.
          */
-        System.out.println("\nPeer: " + Utils.PEER_ID);
+        System.out.println("\nSTATE :: Peer: " + Utils.PEER_ID);
         System.out.println("\nStored Files:");
         ConcurrentHashMap<String, SFile> backupFiles = this.storage.getBackupFiles();
         for (String fileId : backupFiles.keySet()) {
@@ -247,8 +249,8 @@ public class Peer implements IRemote {
         }
 
         /*
-         * For each chunk it stores: Its id Its size (in KBytes) The desired replication
-         * degree Its perceived replication degree
+         * For each chunk it stores: its id, its size (in KBytes), the desired replication
+         * degree and the perceived replication degree
          */
         System.out.println("\nStored chunks:");
 
@@ -263,9 +265,8 @@ public class Peer implements IRemote {
         }
 
         /*
-         * The peer's storage capacity, i.e. the maximum amount of disk space that can
-         * be used to store chunks, and the amount of storage (both in KBytes) used to
-         * backup the chunks.
+         * The peer's storage capacity, i.e. the maximum amount of disk space that can be used 
+         * to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
          */
         System.out.println("\nStorage capacity:");
         System.out.println("\tMaximum capacity: " + this.storage.getCapacity() / 1000 + " KBytes");
@@ -273,6 +274,7 @@ public class Peer implements IRemote {
         System.out.println("\tFree capacity: " + this.storage.getFreeCapacity() / 1000 + " KBytes");
     }
 
+    
     // Methods for RESTORE
 
     // Initiator-peer

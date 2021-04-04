@@ -67,7 +67,7 @@ public abstract class Channel {
         try {
             this.socket.send(packet);
         } catch (IOException e) {
-            System.err.println("Failed to send packet. Trying again");
+            Utils.error("I/O exception when reading from socket. Trying again.");
             this.socket.send(packet);
         }
     }

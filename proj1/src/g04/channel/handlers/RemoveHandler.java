@@ -8,6 +8,12 @@ import g04.Utils;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
 
+/**
+ * Starts a PUTCHUNK protocol when, as a result of a REMOVED chunk, the perceived replication
+ * degree drops below the desired.
+ * Before starting the PUTCHUNK protocol, the peer checks if other peer has already started one
+ * and, if it has, aborts.
+ */
 public class RemoveHandler implements Runnable {
 
     private Peer peer;

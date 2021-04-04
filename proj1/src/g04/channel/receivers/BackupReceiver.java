@@ -30,7 +30,7 @@ public class BackupReceiver extends MessageReceiver {
             try {
                 this.peer.getBackupChannel().getSocket().receive(packet);
             } catch (IOException e) {
-                e.printStackTrace();
+                Utils.error("I/O exception when receiving messages in the MDB");
             }
 
             Message message = this.parseMessage(packet);

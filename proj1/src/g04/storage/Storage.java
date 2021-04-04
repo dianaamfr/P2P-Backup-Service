@@ -241,7 +241,7 @@ public class Storage implements Serializable {
         AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE);
 
-        System.out.println(this.backupFiles.get(fileId).getFileSize());
+        // System.out.println(this.backupFiles.get(fileId).getFileSize());
         ByteBuffer buffer = ByteBuffer.allocate((int) this.backupFiles.get(fileId).getFileSize());
 
         for (Chunk chunk : restoredChunks) {

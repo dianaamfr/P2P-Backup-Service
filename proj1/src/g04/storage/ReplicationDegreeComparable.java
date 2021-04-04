@@ -1,5 +1,9 @@
 package g04.storage;
 
+/** 
+ * Used to order the stored chunks when the peer needs to free space,
+ * so that the ones whose perceived replication degree is higher than the desired are removed first.
+*/
 public class ReplicationDegreeComparable {
 
     private ChunkKey chunkKey;

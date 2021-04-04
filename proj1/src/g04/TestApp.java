@@ -54,19 +54,17 @@ class TestApp {
                     stub.state();
                     break;
                 default:
-                    System.err.println("Invalid sub protocol");
-                    return;
+                    Utils.error("Invalid sub protocol");
+                    System.exit(1);
             }
         
         } catch(NumberFormatException e){
-            e.printStackTrace();
-            System.err.println("Invalid operands");
-            return;
+            Utils.error("Invalid operands");
+            System.exit(1);
         }
         catch(Exception e) {
-            e.printStackTrace();
-            System.err.println("Remote object error");
-            return;
+            Utils.error("Remote Object Exception");
+            System.exit(1);
         }
         
     }

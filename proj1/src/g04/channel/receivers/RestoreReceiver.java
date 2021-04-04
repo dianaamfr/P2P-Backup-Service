@@ -33,7 +33,7 @@ public class RestoreReceiver extends MessageReceiver {
                 this.peer.getRestoreChannel().getSocket().receive(packet);
 
             } catch (IOException e) {
-                e.printStackTrace();
+                Utils.error("I/O exception when receiving messages in the MDR");
             }
 
             Message message = this.parseMessage(packet);

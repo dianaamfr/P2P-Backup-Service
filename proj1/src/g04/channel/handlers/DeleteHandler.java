@@ -5,6 +5,8 @@ import java.io.IOException;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.ControlChannel;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
@@ -83,9 +85,9 @@ public class DeleteHandler implements Runnable {
 				    Utils.PEER_ID,
 				    this.fileId
 				));
-                System.out.println("Peer " + Utils.PEER_ID + ": sent DELETED");
+                Utils.sendLog(Protocol.DELETE, MessageType.DELETED, "for file " + this.fileId);
 			} catch (IOException e) {
-                System.out.println("Failed to send DELETED for file " + this.fileId);
+                Utils.protocolError(Protocol.DELETE, MessageType.DELETED, "for file " + this.fileId);
 			}
         }
 

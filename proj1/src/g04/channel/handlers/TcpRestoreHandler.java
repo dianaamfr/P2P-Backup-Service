@@ -6,6 +6,8 @@ import java.net.Socket;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.receivers.Message;
 import g04.channel.receivers.TcpRestoreReceiver;
 import g04.storage.Chunk;
@@ -17,7 +19,7 @@ public class TcpRestoreHandler implements Runnable {
     private TcpRestoreReceiver receiver;
     private Socket socket;
 
-    public TcpRestoreHandler(Peer peer, TcpRestoreReceiver receiver, Socket socket) throws IOException{
+    public TcpRestoreHandler(Peer peer, TcpRestoreReceiver receiver, Socket socket){
         this.peer = peer;
         this.receiver = receiver;
         this.socket = socket;
@@ -27,31 +29,32 @@ public class TcpRestoreHandler implements Runnable {
     public void run() {
         Message message = new Message();
 
-        // Read CHUNK message
+        // Read CHUNK message from TCP socket
 		try {
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
 			byte[] bytes = in.readAllBytes();
             message = this.receiver.parseMessage(bytes);
             in.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Utils.error("I/O exception when receiving messages in the TCP socket");
 		}
 
         ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
-        // Receive CHUNK for initiator-peer
+        // Initiator-peer: receive CHUNK
         if (this.peer.isPendingRestore(chunkKey.getFileId())) {
-            System.out.println("Initiator: received CHUNK " +  message.getChunkNo());
+            Utils.receiveLog(Protocol.RESTORE, MessageType.CHUNK, message.getSenderId(), Integer.toString(message.getChunkNo()));
+            
             this.peer.addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
             
             // Restore file if all chunks have been restored
             if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
-                System.out.println("All chunks of a file ready");
+                Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
                 this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
             }
         }
 
-        // Receive CHUNK for other peers
+        // Other peers: listen to CHUNK messages sent by other, to avoid flooding the host
         if ((message.getSenderId() != Utils.PEER_ID) && this.peer.getStorage().hasStoredChunk(chunkKey)
                 && this.peer.hasRestoreRequest(chunkKey)) {
             this.peer.removeRestoreRequest(chunkKey);

@@ -7,8 +7,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import g04.Peer;
 import g04.Utils;
+import g04.Utils.MessageType;
+import g04.Utils.Protocol;
 import g04.channel.ControlChannel;
 
+/**
+ * To ensure that, if a peer that backs up some chunks of the file is not running at the time 
+ * the initiator send a DELETE message, the space used by the chunks will be reclaimed.
+ * 
+ * Sends DELETE messages periodically if there are still pending confirmations regarding the 
+ * deletion of a file.
+ */
 public class AsyncDeleteUpdater implements Runnable {
     private Peer peer;
 
@@ -28,9 +37,11 @@ public class AsyncDeleteUpdater implements Runnable {
                 // Send DELETE message for each chunk of the file
                 DatagramPacket packet = controlChannel.getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, file);
 				controlChannel.sendMessage(packet);
+                Utils.sendLog(Protocol.DELETE, MessageType.DELETE, "for the file " + file);
+                
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+                // Failed to send DELETE
+				Utils.protocolError(Protocol.DELETE, MessageType.DELETE, "for the file " + file);
 			}
         }
     }

@@ -35,7 +35,7 @@ public class ControlReceiver extends MessageReceiver {
             try {
                 this.peer.getControlChannel().getSocket().receive(packet);
             } catch (IOException e) {
-                e.printStackTrace();
+                Utils.error("I/O exception when receiving messages in the MC");
             }
 
             Message message = this.parseMessage(packet);
@@ -77,19 +77,23 @@ public class ControlReceiver extends MessageReceiver {
 
                 case "DELETE":
 
-                    System.out.println("Peer" + Utils.PEER_ID + " received DELETE from " + message.getSenderId());
-                    
+                    Utils.receiveLog(Protocol.DELETE, MessageType.DELETE, message.getSenderId(), 
+                        "for file" + message.getFileId());
+
                     this.peer.getScheduler().execute(new DeleteHandler(this.peer, message.getFileId(), message.getSenderId()));
                     break;
 
                 case "REMOVED":
                     if ((message.getSenderId() != Utils.PEER_ID)) {
+                        // Decrease the perceived replication degree of the chunk
                         int confirmations = storage.removeStoredConfirmation(chunkKey, message.getSenderId());
 
                         if (storage.hasStoredChunk(chunkKey)) {
                             int desiredReplicationDegree = storage.getStoredChunks().get(chunkKey);
 
+                            // Check if the perceived replication degree dropped below the desired
                             if (confirmations < desiredReplicationDegree) {
+                                // To avoid to peers starting a PUTCHUNK protocol
                                 this.peer.addRemovedChunk(chunkKey);
 
                                 chunkKey.setReplicationDegree(desiredReplicationDegree);
@@ -104,9 +108,11 @@ public class ControlReceiver extends MessageReceiver {
 
                 case "DELETED":
 
-                    if (Utils.PROTOCOL_VERSION.equals("2.0") && (message.getSenderId() != Utils.PEER_ID)) {
+                    // Version 2.0: Listen to DELETED confirmations
+                    if (Utils.PROTOCOL_VERSION.equals("2.0") && message.getVersion().equals("2.0") &&
+                    (message.getSenderId() != Utils.PEER_ID)) {
 
-                        System.out.println("Peer" + Utils.PEER_ID + " received DELETED from " + message.getSenderId());
+                        Utils.receiveLog(Protocol.DELETE, MessageType.DELETED, message.getSenderId(), "for file " + message.getFileId());
 
                         // Confirm deletion of a file from a peer
                         storage.removePendingDeletion(message.getFileId(), message.getSenderId());
