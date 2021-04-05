@@ -150,7 +150,7 @@ public class Peer implements IRemote {
 
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {
-                
+
                 // Add the file to the pending restore requests
                 this.pendingRestoreFiles.put(file.getFileId(), new HashSet<>());
 
@@ -301,7 +301,9 @@ public class Peer implements IRemote {
      * @param chunk
      */
     public void addPendingChunk(Chunk chunk) {
-        this.pendingRestoreFiles.get(chunk.getFileId()).add(chunk);
+        if(this.pendingRestoreFiles.containsKey(chunk.getFileId())){
+            this.pendingRestoreFiles.get(chunk.getFileId()).add(chunk);
+        }
     }
 
     /**
@@ -314,7 +316,10 @@ public class Peer implements IRemote {
      */
     public boolean isReadyToRestore(String fileId) {
         // System.out.println(this.pendingRestoreFiles.get(fileId).size());
-        return this.pendingRestoreFiles.get(fileId).size() == this.storage.getFileNumChunks(fileId);
+        if(this.pendingRestoreFiles.containsKey(fileId)){
+            return this.pendingRestoreFiles.get(fileId).size() == this.storage.getFileNumChunks(fileId);
+        }
+        return false;
     }
 
     /**
@@ -325,7 +330,7 @@ public class Peer implements IRemote {
      * @return chunks of the file
      */
     public HashSet<Chunk> getRestoredChunks(String fileId) {
-        return this.pendingRestoreFiles.get(fileId);
+        return this.pendingRestoreFiles.getOrDefault(fileId, new HashSet<Chunk>());
     }
 
     /**

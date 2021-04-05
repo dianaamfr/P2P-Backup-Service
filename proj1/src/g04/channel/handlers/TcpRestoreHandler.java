@@ -53,9 +53,9 @@ public class TcpRestoreHandler implements Runnable {
                 
                 // Restore file if all chunks have been restored
                 if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
-                    Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
+                    //Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
                     this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
-                }
+                } 
             }
 
             // Other peers: listen to CHUNK messages sent by other, to avoid flooding the host
