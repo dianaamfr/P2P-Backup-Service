@@ -16,6 +16,8 @@ public class Message {
      */
     public Message(){
         this.messageType = "";
+        this.fileId = "";
+        this.chunkNo = -1;
     }
 
     public Message(String version, String messageType, int senderId, String fileId){

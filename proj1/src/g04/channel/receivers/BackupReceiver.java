@@ -35,9 +35,9 @@ public class BackupReceiver extends MessageReceiver {
             } catch (IOException e) {
                 Utils.error("I/O exception when receiving messages in the MDB");
 			} catch (Exception e) {
-				message = null;
+				Utils.error(e.getMessage());
 			}
-
+            
             // Receive PUTCHUNK from other peers - don't store his own chunks
             if (message.getMessageType().equals("PUTCHUNK") && (message.getSenderId() != Utils.PEER_ID)
                     && !this.peer.getStorage().hasFile(message.getFileId())) {

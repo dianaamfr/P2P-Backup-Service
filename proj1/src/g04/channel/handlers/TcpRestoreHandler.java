@@ -42,28 +42,28 @@ public class TcpRestoreHandler implements Runnable {
             Utils.error(e.getMessage());
         }
 
-        
         ChunkKey chunkKey = new ChunkKey(message.getFileId(), message.getChunkNo());
 
-        // Initiator-peer: receive CHUNK
-        if (this.peer.isPendingRestore(chunkKey.getFileId())) {
-            Utils.receiveLog(Protocol.RESTORE, MessageType.CHUNK, message.getSenderId(), Integer.toString(message.getChunkNo()));
-            
-            this.peer.addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
-            
-            // Restore file if all chunks have been restored
-            if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
-                Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
-                this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
+        if(message.getMessageType().equals("CHUNK")){
+            // Initiator-peer: receive CHUNK
+            if (this.peer.isPendingRestore(chunkKey.getFileId())) {
+                Utils.receiveLog(Protocol.RESTORE, MessageType.CHUNK, message.getSenderId(), Integer.toString(message.getChunkNo()));
+                
+                this.peer.addPendingChunk(new Chunk(chunkKey.getChunkNum(), chunkKey.getFileId(), message.getBody(), 0));
+                
+                // Restore file if all chunks have been restored
+                if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
+                    Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
+                    this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
+                }
+            }
+
+            // Other peers: listen to CHUNK messages sent by other, to avoid flooding the host
+            if ((message.getSenderId() != Utils.PEER_ID) && this.peer.getStorage().hasStoredChunk(chunkKey)
+                    && this.peer.hasRestoreRequest(chunkKey)) {
+                this.peer.removeRestoreRequest(chunkKey);
             }
         }
-
-        // Other peers: listen to CHUNK messages sent by other, to avoid flooding the host
-        if ((message.getSenderId() != Utils.PEER_ID) && this.peer.getStorage().hasStoredChunk(chunkKey)
-                && this.peer.hasRestoreRequest(chunkKey)) {
-            this.peer.removeRestoreRequest(chunkKey);
-        }
-		
 	}
     
 }
