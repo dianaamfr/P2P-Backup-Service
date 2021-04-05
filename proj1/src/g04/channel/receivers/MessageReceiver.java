@@ -1,11 +1,13 @@
 package g04.channel.receivers;
-import java.net.DatagramPacket;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 import g04.Peer;
 import g04.Utils;
 
+/**
+ * An abstract class that represents a thread that receives the messages sent via a Multicast Channel.
+ */
 public abstract class MessageReceiver implements Runnable {
 
     protected Peer peer;
@@ -19,9 +21,10 @@ public abstract class MessageReceiver implements Runnable {
 
     /**
      * Parses a protocol message
-     * @param packet
-     * @return the message
-     * @throws Exception
+     * @param bytes the messages bytes
+     * @param len the number of bytes of the message
+     * @return the parsed message
+     * @throws Exception if the message does not follow the correct format
      */
     public Message parseMessage(byte[] bytes, int len) throws Exception {
         

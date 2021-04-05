@@ -49,8 +49,11 @@ public class Peer implements IRemote {
         this.storage = new Storage();
         this.scheduler = new ScheduledThreadPoolExecutor(50);
 
+        // Schedule the storage updater to execute with a fixed delay of 5s and before the peer process shuts down
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage), 5000, 5000, TimeUnit.MILLISECONDS);
+        Runtime.getRuntime().addShutdownHook(new Thread(new AsyncStorageUpdater(this.storage)));
 
+        // TODO: other possibility would be to have a Registry message when a peer starts executing
         if (Utils.PROTOCOL_VERSION.equals("2.0")) {
             this.scheduler.scheduleWithFixedDelay(new AsyncDeleteUpdater(this), 5000, 5000, TimeUnit.MILLISECONDS);
         }
@@ -213,9 +216,11 @@ public class Peer implements IRemote {
 
     }
 
+    // TODO: check if capacity should be float instead of int
     @Override
     public void reclaim(int diskSpace) {
         this.storage.setCapacity(diskSpace);
+        Utils.protocolLog(Protocol.RECLAIM, "Maximum capacity set to " + diskSpace);
         this.scheduler.execute(new ReclaimHandler(this));
     }
 

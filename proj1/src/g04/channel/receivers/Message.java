@@ -11,8 +11,11 @@ public class Message {
     private int replicationDegree;
     private byte[] body;
 
+    /**
+     * Stores all data from a protocol message
+     */
     public Message(){
-        
+        this.messageType = "";
     }
 
     public Message(String version, String messageType, int senderId, String fileId){

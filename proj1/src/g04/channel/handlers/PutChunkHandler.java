@@ -52,7 +52,7 @@ public class PutChunkHandler implements Runnable {
                     storage.addChunk(chunk.getChunkKey());
                 } else {
                     stored = false;
-                    Utils.protocolError(Protocol.BACKUP, MessageType.PUTCHUNK, "no capacity to store chunk" + chunk.getChunkNum());
+                    Utils.protocolError(Protocol.BACKUP, null, "no capacity to store chunk" + chunk.getChunkNum());
                 }
 
             } catch (IOException e) {
@@ -69,6 +69,7 @@ public class PutChunkHandler implements Runnable {
                 controlChannel.sendMessage(
                         controlChannel.storedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunk.getChunkKey()));
             } catch (IOException e) {
+                // Failed to send STORED
                 Utils.protocolError(Protocol.BACKUP, MessageType.STORED, "for chunk" + chunk.getChunkNum());
             }
         }

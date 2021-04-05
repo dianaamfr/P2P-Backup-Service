@@ -87,6 +87,7 @@ public class GetChunkHandler implements Runnable {
             this.peer.removeRestoreRequest(chunkKey);
 
 		} catch (Exception e) {
+            // Failed to send CHUNK
             Utils.protocolError(Protocol.RESTORE, MessageType.CHUNK, "for chunk" + chunk.getChunkNum());
 		}
 
