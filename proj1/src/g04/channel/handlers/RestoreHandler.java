@@ -23,8 +23,9 @@ public class RestoreHandler implements Runnable {
     @Override
     public void run() {
         try {
-            this.peer.removePendingRestore(this.fileId);
-            this.peer.getStorage().storeRestored(this.fileId, this.chunks);
+            if(this.peer.removePendingRestore(this.fileId) != null){
+                this.peer.getStorage().storeRestored(this.fileId, this.chunks);
+            }
         } catch (Exception e) {
             Utils.protocolError(Protocol.RESTORE, null, "failed to store file " + this.fileId);
         }

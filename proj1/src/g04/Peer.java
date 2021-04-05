@@ -332,9 +332,10 @@ public class Peer implements IRemote {
      * Used by the initiator-peer when a restore was successfully completed.
      * 
      * @param fileId
+     * @return 
      */
-    public void removePendingRestore(String fileId) {
-        this.pendingRestoreFiles.remove(fileId);
+    public HashSet<Chunk> removePendingRestore(String fileId) {
+        return this.pendingRestoreFiles.remove(fileId);
     }
 
     // Other peers
