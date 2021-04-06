@@ -68,7 +68,7 @@ backup7:
 	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3
 
 backup10mb: 
-	java g04.TestApp peer1 BACKUP g04/test/test10mb.zip 3
+	java g04.TestApp peer1 BACKUP g04/test/test10mb.zip 2
 
 # Restore tests
 restore: 

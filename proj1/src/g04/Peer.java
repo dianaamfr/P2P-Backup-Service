@@ -20,6 +20,7 @@ import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
 import g04.channel.RestoreChannel;
 import g04.channel.handlers.BackupHandler;
+import g04.channel.handlers.BackupNotifier;
 import g04.channel.handlers.GetDeleteSender;
 import g04.channel.handlers.ReclaimHandler;
 import g04.storage.AsyncStorageUpdater;
@@ -136,6 +137,9 @@ public class Peer implements IRemote {
                 // Get confirmation messages or resend PUTCHUNK
                 scheduler.execute(new BackupHandler(this, packet, chunk.getChunkKey(), replicationDegree));
             }
+
+            // To notify when the backup finishes
+            scheduler.schedule(new BackupNotifier(this, file.getFileId(), replicationDegree), Utils.WAIT_TIME, TimeUnit.MILLISECONDS);
 
         } catch (Exception e) {
             Utils.protocolError(Protocol.BACKUP,null,"failed to process the file " + fileName);
