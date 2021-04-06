@@ -1,4 +1,4 @@
-package g04.storage;
+package g04.channel.handlers;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -10,19 +10,22 @@ import g04.Utils;
 import g04.Utils.MessageType;
 import g04.Utils.Protocol;
 import g04.channel.ControlChannel;
+import g04.storage.Storage;
 
 /**
  * To ensure that, if a peer that backs up some chunks of the file is not running at the time 
  * the initiator send a DELETE message, the space used by the chunks will be reclaimed.
  * 
- * Sends DELETE messages periodically if there are still pending confirmations regarding the 
+ * Sends DELETE messages if there are still pending confirmations regarding the 
  * deletion of a file.
  */
-public class AsyncDeleteUpdater implements Runnable {
+public class GetDeleteHandler implements Runnable {
     private Peer peer;
+    private int senderId;
 
-    public AsyncDeleteUpdater(Peer peer) {
+    public GetDeleteHandler(Peer peer, int senderId) {
         this.peer = peer;
+        this.senderId = senderId;
     }
 
     @Override
@@ -34,11 +37,14 @@ public class AsyncDeleteUpdater implements Runnable {
 
         for(String file : deletedFiles.keySet()){
             try {
-                // Send DELETE message for each chunk of the file
-                DatagramPacket packet = controlChannel.getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, file);
-				controlChannel.sendMessage(packet);
-                Utils.sendLog(Protocol.DELETE, MessageType.DELETE, "for the file " + file);
                 
+                if(deletedFiles.get(file).contains(this.senderId)){
+                    // Send DELETE message for each chunk of the file
+                    DatagramPacket packet = controlChannel.deletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, file);
+                    controlChannel.sendMessage(packet);
+                    Utils.sendLog(Protocol.DELETE, MessageType.DELETE, "for the file " + file);
+                }
+
 			} catch (IOException e) {
                 // Failed to send DELETE
 				Utils.protocolError(Protocol.DELETE, MessageType.DELETE, "for the file " + file);

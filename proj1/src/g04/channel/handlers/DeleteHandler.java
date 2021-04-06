@@ -80,7 +80,7 @@ public class DeleteHandler implements Runnable {
             // Version 2.0: send DELETED confirmation
             try {
                 ControlChannel controlChannel = this.peer.getControlChannel();
-				controlChannel.sendMessage(controlChannel.getDeletedPacket(
+				controlChannel.sendMessage(controlChannel.deletedPacket(
 				    Utils.PROTOCOL_VERSION, 
 				    Utils.PEER_ID,
 				    this.fileId

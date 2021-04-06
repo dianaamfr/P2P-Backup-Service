@@ -10,6 +10,7 @@ import g04.Utils.MessageType;
 import g04.Utils.Protocol;
 import g04.channel.handlers.DeleteHandler;
 import g04.channel.handlers.GetChunkHandler;
+import g04.channel.handlers.GetDeleteHandler;
 import g04.channel.handlers.RemoveHandler;
 import g04.storage.ChunkKey;
 import g04.storage.Storage;
@@ -120,6 +121,13 @@ public class ControlReceiver extends MessageReceiver {
 
                         // Confirm deletion of a file from a peer
                         storage.removePendingDeletion(message.getFileId(), message.getSenderId());
+                    }
+                    break;
+
+                case "GETDELETE":
+                    if (Utils.PROTOCOL_VERSION.equals("2.0") && message.getVersion().equals("2.0")){
+                        Utils.receiveLog(Protocol.DELETE, MessageType.GETDELETE, message.getSenderId(),"");
+                        this.peer.getScheduler().execute(new GetDeleteHandler(this.peer, message.getSenderId()));
                     }
                     break;
                 default:

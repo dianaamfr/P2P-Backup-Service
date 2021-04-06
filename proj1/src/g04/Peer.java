@@ -20,8 +20,8 @@ import g04.channel.ChannelAggregator;
 import g04.channel.ControlChannel;
 import g04.channel.RestoreChannel;
 import g04.channel.handlers.BackupHandler;
+import g04.channel.handlers.GetDeleteSender;
 import g04.channel.handlers.ReclaimHandler;
-import g04.storage.AsyncDeleteUpdater;
 import g04.storage.AsyncStorageUpdater;
 import g04.storage.Chunk;
 import g04.storage.ChunkKey;
@@ -53,9 +53,9 @@ public class Peer implements IRemote {
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage), 5000, 5000, TimeUnit.MILLISECONDS);
         Runtime.getRuntime().addShutdownHook(new Thread(new AsyncStorageUpdater(this.storage)));
 
-        // TODO: other possibility would be to have a Registry message when a peer starts executing
+        // Send GETDELETE message when a peer starts executing
         if (Utils.PROTOCOL_VERSION.equals("2.0")) {
-            this.scheduler.scheduleWithFixedDelay(new AsyncDeleteUpdater(this), 5000, 5000, TimeUnit.MILLISECONDS);
+            this.scheduler.schedule(new GetDeleteSender(this), 5000, TimeUnit.MILLISECONDS);
         }
 
         this.pendingRestoreFiles = new ConcurrentHashMap<>();
@@ -198,7 +198,7 @@ public class Peer implements IRemote {
                     this.storage.addDeletedFile(file.getFileId());
                 }
 
-                DatagramPacket packet = this.getControlChannel().getDeletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
+                DatagramPacket packet = this.getControlChannel().deletePacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
                         file.getFileId());
 
                 // Send DELETE message

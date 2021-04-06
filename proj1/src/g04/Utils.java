@@ -43,7 +43,8 @@ public class Utils {
         CHUNK,
         DELETE,
         REMOVED,
-        DELETED
+        DELETED,
+        GETDELETE
     }
 
     public final static int getRandomDelay(){

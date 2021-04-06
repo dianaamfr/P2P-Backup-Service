@@ -46,7 +46,7 @@ public class ReclaimHandler implements Runnable {
         while(this.storage.isFull()){
             try {
                 // Send REMOVED message
-                DatagramPacket packet = this.peer.getControlChannel().getRemovedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0).getChunkKey());
+                DatagramPacket packet = this.peer.getControlChannel().removedPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID, chunks.get(0).getChunkKey());
                 this.peer.getControlChannel().sendMessage(packet);
                 
                 ChunkKey key = chunks.get(0).getChunkKey();

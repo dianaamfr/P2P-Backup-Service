@@ -37,12 +37,15 @@ public abstract class Channel {
         builder.append(operation);
         builder.append(" ");
         builder.append(Integer.toString(senderId));
-        builder.append(" ");
-        builder.append(fileId);
+        if(!fileId.equals("")){
+            builder.append(" ");
+            builder.append(fileId);
+        }
         for (String op : optional) {
             builder.append(" ");
             builder.append(op);
         }
+        
         builder.append(" ");
         builder.append(Utils.CRLF);
         builder.append(Utils.CRLF);

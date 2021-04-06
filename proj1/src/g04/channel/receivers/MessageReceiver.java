@@ -59,6 +59,10 @@ public abstract class MessageReceiver implements Runnable {
 
         String header = new String(bytes, 0, crlf, StandardCharsets.US_ASCII);
         String[] args = header.trim().split("\\s+"); // Handle multiple whitespaces
+        
+        if(args[1].equals("GETDELETE")){
+            return new Message(args[0], args[1], Integer.parseInt(args[2]),"");
+        }
 
         Message message = new Message(args[0], args[1], Integer.parseInt(args[2]), args[3]);
 
