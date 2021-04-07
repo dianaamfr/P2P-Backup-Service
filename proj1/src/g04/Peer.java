@@ -267,7 +267,7 @@ public class Peer implements IRemote {
 
             System.out.println("\tFileId: " + key.getFileId());
             System.out.println("\tChunkNo: " + key.getChunkNum());
-            System.out.println("\tSize: " + key.getSize() / 1000 + " KBytes");
+            System.out.println("\tSize: " + key.getSize() * 1.0 / 1000 + " KBytes");
             System.out.println("\tDesired Replication Degree: " + this.storage.getStoredChunks().get(key));
             System.out.println("\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
             System.out.println("\t----------------------------------------------------");
@@ -278,9 +278,9 @@ public class Peer implements IRemote {
          * to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
          */
         System.out.println("\nStorage capacity:");
-        System.out.println("\tMaximum capacity: " + this.storage.getCapacity() / 1000 + " KBytes");
-        System.out.println("\tUsed capacity: " + this.storage.getCapacityUsed() / 1000 + " KBytes");
-        System.out.println("\tFree capacity: " + this.storage.getFreeCapacity() / 1000 + " KBytes");
+        System.out.println("\tMaximum capacity: " + this.storage.getCapacity() * 1.0 / 1000 + " KBytes");
+        System.out.println("\tUsed capacity: " + this.storage.getCapacityUsed() * 1.0 / 1000 + " KBytes");
+        System.out.println("\tFree capacity: " + this.storage.getFreeCapacity() * 1.0 / 1000 + " KBytes");
     }
 
     
