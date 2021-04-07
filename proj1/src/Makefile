@@ -67,6 +67,9 @@ backup6:
 backup7: 
 	java g04.TestApp peer1 BACKUP g04/test/test7.mp3 3
 
+backup5mb: 
+	java g04.TestApp peer1 BACKUP g04/test/image5mb.jpg 2
+
 backup10mb: 
 	java g04.TestApp peer1 BACKUP g04/test/test10mb.zip 2
 
@@ -95,6 +98,12 @@ restore6:
 restore7: 
 	java g04.TestApp peer1 RESTORE test7.mp3
 
+restore5mb: 
+	java g04.TestApp peer1 RESTORE image5mb.jpg
+
+restore10mb: 
+	java g04.TestApp peer1 RESTORE test10mb.zip
+
 # Delete tests
 delete: 
 	java g04.TestApp peer0 DELETE Makefile
@@ -120,12 +129,15 @@ delete6:
 delete7: 
 	java g04.TestApp peer1 DELETE test7.mp3
 
+delete10mb: 
+	java g04.TestApp peer1 DELETE test10mb.zip
+
 # Reclaim tests
 reclaim_decrease2:
-	java g04.TestApp peer2 RECLAIM 70
+	java g04.TestApp peer2 RECLAIM 5000
 
 reclaim_increase2:
-	java g04.TestApp peer2 RECLAIM 5000
+	java g04.TestApp peer2 RECLAIM 500000
 
 # State tests
 state:

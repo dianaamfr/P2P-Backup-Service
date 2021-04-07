@@ -14,6 +14,7 @@ public class SFile implements Serializable {
     private static final long serialVersionUID = 2416806248376564181L;
     private String fileName;
     private String fileId;
+    private long lastModified;
     private int replicationDegree;
     private File file;
     private long fileSize;
@@ -26,6 +27,7 @@ public class SFile implements Serializable {
     public SFile(String fileName, int replicationDegree) throws NoSuchAlgorithmException, IOException {
         this.file = new File(fileName);
         this.fileName = this.file.getName();
+        this.lastModified = this.file.lastModified();
         this.fileId = Utils.generateHash(this.file);
         this.fileSize = this.file.length();
         this.replicationDegree = replicationDegree;
@@ -75,6 +77,17 @@ public class SFile implements Serializable {
     public boolean equals(Object obj) {
         return this.fileName.equals(((SFile) obj).getFileName());
     }
+
+	public int compare(SFile other) {
+		
+		if(this.getLastModified() > other.getLastModified())
+			return -1;
+		
+		if(this.getLastModified() < other.getLastModified())
+			return 1;
+
+		return 0;
+	}
     
     // Getters
     public String getFileName() {
@@ -96,4 +109,12 @@ public class SFile implements Serializable {
     public int getNumberOfChunks(){
         return this.numberOfChunks;
     }
+
+	public long getLastModified() {
+		return lastModified;
+	}
+
+	public void setLastModified(long lastModified) {
+		this.lastModified = lastModified;
+	}    
 }

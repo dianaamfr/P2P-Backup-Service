@@ -49,7 +49,7 @@ public class BackupNotifier implements Runnable {
                     break;
                 } else {
                     Utils.protocolError(Protocol.BACKUP, null, ": backup failed");
-                    break;
+                    return;
                 }
             }
         }

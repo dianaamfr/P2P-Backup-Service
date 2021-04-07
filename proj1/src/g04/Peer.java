@@ -6,7 +6,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,24 +30,27 @@ import g04.storage.Storage;
 
 public class Peer implements IRemote {
 
-    private ChannelAggregator channelAggregator; /** Control, Backup and Restore multicast channels */
-    private Storage storage; /** Stores data that must persist between executions */
+    // Control, Backup and Restore multicast channels
+    private ChannelAggregator channelAggregator;
+    // Stores data that must persist between executions
+    private Storage storage;
+    // Executes and schedules threads
     private ScheduledThreadPoolExecutor scheduler;
-
+    
     // Auxiliar data structures for RESTORE
-    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles; /*
-                                                                            * For each file pending restore, keeps the
-                                                                            * chunks already restored (initiator-peer)
-                                                                            */
-    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests; /** Keeps track of restore requests (non-initiator peers) */
+    // For each file pending restore, keeps the chunks already restored (initiator-peer)
+    private ConcurrentHashMap<String, HashSet<Chunk>> pendingRestoreFiles;
+    // Keeps track of restore requests (non-initiator peers)
+    private ConcurrentHashMap<ChunkKey, Integer> restoreRequests;
 
     // Auxiliar data structures for REMOVED
-    private ConcurrentHashMap<ChunkKey, Integer> removedChunks; /** Keeps track of removed chunks */
+    // Keeps track of removed chunks
+    private ConcurrentHashMap<ChunkKey, Integer> removedChunks;
 
     public Peer(ChannelAggregator aggregator) throws IOException {
         this.channelAggregator = aggregator;
         this.storage = new Storage();
-        this.scheduler = new ScheduledThreadPoolExecutor(50);
+        this.scheduler = new ScheduledThreadPoolExecutor(100);
 
         // Schedule the storage updater to execute with a fixed delay of 5s and before the peer process shuts down
         this.scheduler.scheduleWithFixedDelay(new AsyncStorageUpdater(this.storage), 5000, 5000, TimeUnit.MILLISECONDS);
@@ -106,6 +108,9 @@ public class Peer implements IRemote {
             registry = LocateRegistry.createRegistry(1099);
         } catch (IOException e) {
             Utils.usage("IOException when joining Multicast Groups");
+            System.exit(1);
+        } catch (Exception e) {
+            Utils.usage(e.getMessage());
             System.exit(1);
         }
 
@@ -220,7 +225,6 @@ public class Peer implements IRemote {
 
     }
 
-    // TODO: check if capacity should be float instead of int
     @Override
     public void reclaim(int diskSpace) {
         this.storage.setCapacity(diskSpace);

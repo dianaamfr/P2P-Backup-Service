@@ -30,7 +30,6 @@ public class TcpRestoreHandler implements Runnable {
         Message message = new Message();
 
         // Read CHUNK message from TCP socket
-        // TODO: decide how to handle this exceptions
 		try {
             DataInputStream in = new DataInputStream(this.socket.getInputStream());
 			byte[] bytes = in.readAllBytes();

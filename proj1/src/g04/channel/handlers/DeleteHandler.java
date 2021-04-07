@@ -101,12 +101,6 @@ public class DeleteHandler implements Runnable {
                 }
             }
 
-            // Remove file from restored files
-            File file = new File(storage.getPath() + "/restored/" + storage.getBackupFiles().get(this.fileId).getFileName());
-            if(file.exists()) {
-                file.delete();
-            }
-
             // Remove from backed up files
             storage.getBackupFiles().remove(this.fileId);
         }

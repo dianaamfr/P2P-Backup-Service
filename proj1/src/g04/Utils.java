@@ -112,7 +112,7 @@ public class Utils {
 
     /**
      * 
-     * Print information about a specifc protocol
+     * Print information about a specific protocol
      * @param protocol
      * @param message
      */
@@ -122,7 +122,7 @@ public class Utils {
 
     /**
      * 
-     * Print information about an error that occurred in a specifc protocol
+     * Print information about an error that occurred in a specific protocol
      * @param protocol
      * @param messageType
      * @param message

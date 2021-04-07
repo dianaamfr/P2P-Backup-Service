@@ -30,7 +30,6 @@ public class RestoreReceiver extends MessageReceiver {
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
             Message message = new Message();
 
-            // TODO: decide how to handle this exceptions
             try {
                 this.peer.getRestoreChannel().getSocket().receive(packet);
                 message = this.parseMessage(packet.getData(),packet.getLength());
@@ -53,7 +52,7 @@ public class RestoreReceiver extends MessageReceiver {
 
                     // Restore file if all chunks have been restored
                     if (this.peer.isReadyToRestore(chunkKey.getFileId())) {
-                        Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
+                        // Utils.protocolLog(Protocol.RESTORE, "has file " + chunkKey.getFileId() + " ready to restore");
                         this.peer.getScheduler().execute(new RestoreHandler(this.peer, chunkKey.getFileId()));
                     }
                 }

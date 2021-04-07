@@ -58,10 +58,8 @@ public class BackupHandler implements Runnable {
                 this.peer.getScheduler().schedule(new BackupHandler(this.peer, this.packet, this.chunkKey,
                         this.replicationDegree, this.tries + 1, this.time * 2), this.time, TimeUnit.MILLISECONDS);
             } else {
-                Utils.protocolError(Protocol.BACKUP, MessageType.PUTCHUNK, ": maximum tries exceded");
-                // TODO: notify peer
+                Utils.protocolError(Protocol.BACKUP, MessageType.PUTCHUNK, ": maximum tries exceeded");
             }
         }
-        // TODO: notify peer
     }
 }

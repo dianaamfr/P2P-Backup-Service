@@ -34,7 +34,6 @@ public class ControlReceiver extends MessageReceiver {
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
             Message message = new Message();
 
-            // TODO: decide how to handle this exceptions
             try {
                 this.peer.getControlChannel().getSocket().receive(packet);
                 message = this.parseMessage(packet.getData(), packet.getLength());
@@ -133,8 +132,6 @@ public class ControlReceiver extends MessageReceiver {
                 default:
                     break;
             }
-
         }
     }
-
 }

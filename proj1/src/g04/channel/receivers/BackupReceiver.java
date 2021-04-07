@@ -28,7 +28,6 @@ public class BackupReceiver extends MessageReceiver {
             DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length);
             Message message = new Message();
 
-            // TODO: decide how to handle this exceptions
             try {
                 this.peer.getBackupChannel().getSocket().receive(packet);
                 message = this.parseMessage(packet.getData(), packet.getLength());

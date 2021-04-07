@@ -14,7 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.*;
 import java.util.concurrent.Future;
@@ -25,13 +29,19 @@ import g04.Utils.Protocol;
 public class Storage implements Serializable {
 
     private static final long serialVersionUID = -3297985980735829122L;
+    // Path to peer storage directory
     private String path;
-    private ConcurrentHashMap<ChunkKey, Integer> storedChunks; /** Stored Chunks */ 
-    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks; /** To store the chunks confirmations */
-    private ConcurrentHashMap<String, SFile> backupFiles; /** To retrieve information about files which the peer has
-                                                          initiated a backup for (initiator peer) */
-    private ConcurrentHashMap<String, HashSet<Integer>> deletedFiles; /* For each deleted file, keeps the peers that did not confirm the deletion */
+    // Stored Chunks
+    private ConcurrentHashMap<ChunkKey, Integer> storedChunks;
+    // To store the chunks confirmations
+    private ConcurrentHashMap<ChunkKey, HashSet<Integer>> confirmedChunks;
+    // To retrieve information about files which the peer has initiated a backup for (initiator peer)
+    private ConcurrentHashMap<String, SFile> backupFiles;
+    // For each deleted file, keeps the peers that did not confirm the deletion
+    private ConcurrentHashMap<String, HashSet<Integer>> deletedFiles;
+    // Storage maximum capacity
     private int capacity;
+    // Storage used capacity
     private int capacityUsed;
 
     /**
@@ -55,7 +65,7 @@ public class Storage implements Serializable {
             }
             Files.createDirectories(Paths.get(this.path));
         } catch (Exception e) {
-
+            Utils.error(e.getMessage());
         }
     }
 
@@ -78,6 +88,7 @@ public class Storage implements Serializable {
         this.deletedFiles = s.getDeletedFiles();
 
         oi.close();
+        fi.close();
     }
 
 
@@ -118,9 +129,18 @@ public class Storage implements Serializable {
      * @return the file with the given fileName or null if the peer did not initiate any backup for the file.
      */
     public SFile getFileByFileName(String fileName) {
+
+        ArrayList<SFile> files = new ArrayList<>();
+
         for (Object file : this.backupFiles.values().toArray()) {
-            if (((SFile) file).getFileName().equals(fileName))
-                return (SFile) file;
+            files.add(((SFile) file));
+        }
+
+        Collections.sort(files, (a,b) -> a.compare(b));
+
+        for (SFile file : files) {
+            if (file.getFileName().equals(fileName))
+                return file;
         }
 
         return null;

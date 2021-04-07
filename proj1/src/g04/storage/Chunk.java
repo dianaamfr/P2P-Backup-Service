@@ -98,7 +98,4 @@ public class Chunk implements Serializable, Comparable<Chunk> {
 			return false;
 		return true;
 	}
-
-	
-	
 }
