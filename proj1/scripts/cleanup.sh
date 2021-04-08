@@ -15,8 +15,12 @@ argc=$#
 if ((argc == 1 ))
 then
 	peer_id=$1
-else 
-	echo "Usage: $0 [<peer_id>]]"
+	rm -r "g04/output/peer${peer_id}"
+elif ((argc == 0))
+then
+	rm -r g04/output
+else
+	echo "Usage: $0 [<peer_id>]"
 	exit 1
 fi
 

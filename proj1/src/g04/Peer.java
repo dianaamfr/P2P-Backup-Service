@@ -226,37 +226,38 @@ public class Peer implements IRemote {
     }
 
     @Override
-    public void reclaim(int diskSpace) {
+    public void reclaim(long diskSpace) {
         this.storage.setCapacity(diskSpace);
         Utils.protocolLog(Protocol.RECLAIM, "Maximum capacity set to " + diskSpace);
         this.scheduler.execute(new ReclaimHandler(this));
     }
 
     @Override
-    public void state() throws RemoteException {
+    public String state() throws RemoteException {
 
+        StringBuilder sbuilder = new StringBuilder();
         /*
          * For each file whose backup it has initiated: 
          * the file pathname, the backup service id of the file and the desired replication degree. 
          * For each chunk of the file: its id and its perceived replication degree.
          */
-        System.out.println("\nSTATE :: Peer: " + Utils.PEER_ID);
-        System.out.println("\nStored Files:");
+        sbuilder.append("\nSTATE :: Peer: " + Utils.PEER_ID);
+        sbuilder.append("\n\nStored Files:");
         ConcurrentHashMap<String, SFile> backupFiles = this.storage.getBackupFiles();
         for (String fileId : backupFiles.keySet()) {
             SFile file = backupFiles.get(fileId);
 
-            System.out.println("\tPathname: " + file.getFileName());
-            System.out.println("\tFileID: " + file.getFileId());
-            System.out.println("\tReplication Degree: " + file.getReplicationDegree());
+            sbuilder.append("\n\tPathname: " + file.getFileName());
+            sbuilder.append("\n\tFileID: " + file.getFileId());
+            sbuilder.append("\n\tReplication Degree: " + file.getReplicationDegree());
 
-            System.out.println("\tChunks: ");
+            sbuilder.append("\n\tChunks: ");
 
             for (ChunkKey key : this.storage.getConfirmedChunks().keySet()) {
                 if (key.getFileId().equals(file.getFileId())) {
-                    System.out.println("\t\tChunk No: " + key.getChunkNum());
-                    System.out.println("\t\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
-                    System.out.println("\t\t----------------------------------------------------");
+                    sbuilder.append("\n\t\tChunk No: " + key.getChunkNum());
+                    sbuilder.append("\n\t\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
+                    sbuilder.append("\n\t\t----------------------------------------------------");
                 }
             }
         }
@@ -265,26 +266,28 @@ public class Peer implements IRemote {
          * For each chunk it stores: its id, its size (in KBytes), the desired replication
          * degree and the perceived replication degree
          */
-        System.out.println("\nStored chunks:");
+        sbuilder.append("\n\nStored chunks:");
 
         for (ChunkKey key : storage.getStoredChunks().keySet()) {
 
-            System.out.println("\tFileId: " + key.getFileId());
-            System.out.println("\tChunkNo: " + key.getChunkNum());
-            System.out.println("\tSize: " + key.getSize() * 1.0 / 1000 + " KBytes");
-            System.out.println("\tDesired Replication Degree: " + this.storage.getStoredChunks().get(key));
-            System.out.println("\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
-            System.out.println("\t----------------------------------------------------");
+            sbuilder.append("\n\tFileId: " + key.getFileId());
+            sbuilder.append("\n\tChunkNo: " + key.getChunkNum());
+            sbuilder.append("\n\tSize: " + key.getSize() * 1.0 / 1000 + " KBytes");
+            sbuilder.append("\n\tDesired Replication Degree: " + this.storage.getStoredChunks().get(key));
+            sbuilder.append("\n\tPerceived Replication Degree: " + this.storage.getConfirmedChunks(key));
+            sbuilder.append("\n\t----------------------------------------------------");
         }
 
         /*
          * The peer's storage capacity, i.e. the maximum amount of disk space that can be used 
          * to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
          */
-        System.out.println("\nStorage capacity:");
-        System.out.println("\tMaximum capacity: " + this.storage.getCapacity() * 1.0 / 1000 + " KBytes");
-        System.out.println("\tUsed capacity: " + this.storage.getCapacityUsed() * 1.0 / 1000 + " KBytes");
-        System.out.println("\tFree capacity: " + this.storage.getFreeCapacity() * 1.0 / 1000 + " KBytes");
+        sbuilder.append("\n\nStorage capacity:");
+        sbuilder.append("\n\tMaximum capacity: " + this.storage.getCapacity() * 1.0 / 1000 + " KBytes");
+        sbuilder.append("\n\tUsed capacity: " + this.storage.getCapacityUsed() * 1.0 / 1000 + " KBytes");
+        sbuilder.append("\n\tFree capacity: " + this.storage.getFreeCapacity() * 1.0 / 1000 + " KBytes");
+
+        return sbuilder.toString();
     }
 
     
@@ -294,7 +297,7 @@ public class Peer implements IRemote {
 
     /**
      * Used by the initiator-peer to check if a restore request was made for a file,
-     * veryfing if he is waiting for CHUNKS of that file.
+     * verifying if he is waiting for CHUNKS of that file.
      * 
      * @param fileId
      * @return true if the peer has started a restore for the file, false otherwise

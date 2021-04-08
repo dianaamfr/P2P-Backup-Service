@@ -44,14 +44,15 @@ class TestApp {
                         usage();
                         return;
                     }
-                    stub.reclaim(Integer.parseInt(args[2])*1000);
+                    stub.reclaim(Long.parseLong(args[2])*1000);
                     break;
                 case "STATE":
                     if(args.length != 2){
                         usage();
                         return;
                     }
-                    stub.state();
+                    String result = stub.state();
+                    System.out.println(result);
                     break;
                 default:
                     Utils.error("Invalid sub protocol");

@@ -40,9 +40,9 @@ public class Storage implements Serializable {
     // For each deleted file, keeps the peers that did not confirm the deletion
     private ConcurrentHashMap<String, HashSet<Integer>> deletedFiles;
     // Storage maximum capacity
-    private int capacity;
+    private long capacity;
     // Storage used capacity
-    private int capacityUsed;
+    private long capacityUsed;
 
     /**
      * Generates a new storage for a peer if it is not in memory. Otherwise recover previous storage state 
@@ -261,7 +261,6 @@ public class Storage implements Serializable {
         AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
                 StandardOpenOption.WRITE);
 
-        // System.out.println(this.backupFiles.get(fileId).getFileSize());
         ByteBuffer buffer = ByteBuffer.allocate((int) this.backupFiles.get(fileId).getFileSize());
 
         for (Chunk chunk : restoredChunks) {
@@ -392,7 +391,7 @@ public class Storage implements Serializable {
         return this.capacityUsed + size <= this.capacity;
     }
 
-    public void setCapacity(int capacity) {
+    public void setCapacity(long capacity) {
         this.capacity = capacity;
     }
 
@@ -400,7 +399,7 @@ public class Storage implements Serializable {
         return this.capacity < this.capacityUsed;
     }
 
-    public int getFreeCapacity() {
+    public long getFreeCapacity() {
         return this.capacity - this.capacityUsed;
     }
 
@@ -422,11 +421,11 @@ public class Storage implements Serializable {
         return this.confirmedChunks;
     }
 
-    public int getCapacity() {
+    public long getCapacity() {
         return this.capacity;
     }
 
-    public int getCapacityUsed() {
+    public long getCapacityUsed() {
         return this.capacityUsed; 
     }
 
