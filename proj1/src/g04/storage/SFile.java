@@ -64,9 +64,9 @@ public class SFile implements Serializable {
 
         // File Size is multiple of the chunk size 
         if(this.fileSize % Utils.CHUNK_SIZE == 0){
-            this.numberOfChunks++;
             Chunk chunk = new Chunk(this.numberOfChunks, this.fileId, new byte[0] ,this.replicationDegree);
             chunks.add(chunk);
+            this.numberOfChunks++;
         }
 
         return chunks;

@@ -73,19 +73,14 @@ public abstract class MessageReceiver implements Runnable {
             if (message.getMessageType().equals("PUTCHUNK")) {
          
                 message.setReplicationDegree(Integer.parseInt(args[5]));
-
-                if (lastCrlf + 2 >= len) {
-                    throw new Exception("Missing Message Body");
-                }
+                
                 message.setBody(Arrays.copyOfRange(bytes, lastCrlf + 2, len));
 
             } 
             else if (message.getMessageType().equals("CHUNK")) {
                 
-                if (lastCrlf + 2 >= len) {
-                    throw new Exception("Missing Message Body");
-                }
                 message.setBody(Arrays.copyOfRange(bytes, lastCrlf + 2, len));
+            
             } 
             else if (message.getMessageType().equals("GETCHUNK") && message.getVersion().equals("2.0")) {
                 message.setTcpPort(Integer.parseInt(args[5]));
