@@ -2,6 +2,7 @@ package g04;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -156,6 +157,8 @@ public class Peer implements IRemote {
 
         try {
             SFile file;
+
+            fileName = Paths.get(fileName).getFileName().toString();
 
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {

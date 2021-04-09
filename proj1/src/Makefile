@@ -50,7 +50,7 @@ backup1:
 	java g04.TestApp peer0 BACKUP g04/test/iart.pdf 3
 
 backup2: 
-	java g04.TestApp peer0 BACKUP g04/test/README.md 3
+	java g04.TestApp peer0 BACKUP g04/test/README.md 1
 
 backup3: 
 	java g04.TestApp peer0 BACKUP g04/test/sdis.pdf 2
@@ -146,7 +146,7 @@ deletebin:
 
 # Reclaim tests
 reclaim_decrease2:
-	java g04.TestApp peer3 RECLAIM 50
+	java g04.TestApp peer3 RECLAIM 0
 
 reclaim_increase2:
 	java g04.TestApp peer2 RECLAIM 500000

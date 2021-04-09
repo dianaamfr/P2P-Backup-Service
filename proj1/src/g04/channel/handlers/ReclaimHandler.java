@@ -10,6 +10,7 @@ import g04.Peer;
 import g04.Utils;
 import g04.Utils.MessageType;
 import g04.Utils.Protocol;
+import g04.storage.Chunk;
 import g04.storage.ChunkKey;
 import g04.storage.ReplicationDegreeComparable;
 import g04.storage.Storage;
@@ -54,6 +55,21 @@ public class ReclaimHandler implements Runnable {
                 // Decrease used capacity and remove chunk from storage
                 this.storage.decreaseCapacity(key.getSize());
                 this.storage.getStoredChunks().remove(key);
+
+                if(chunks.get(0).getPerceivedRepDegree() == 1){
+					try {
+                        Chunk chunk = this.storage.read(key.getFileId(),key.getChunkNum(), this.peer.getScheduler());
+                        DatagramPacket putChunkPacket = this.peer.getBackupChannel().putChunkPacket(
+                            Utils.PROTOCOL_VERSION, 
+                            Utils.PEER_ID,
+                            chunk);
+
+                        // Get confirmation messages or resend PUTCHUNK
+                        this.peer.getScheduler().execute(new BackupHandler(this.peer, putChunkPacket, chunk.getChunkKey(), 1));
+                    } catch (Exception e) {
+                        Utils.protocolError(Protocol.RECLAIM, MessageType.PUTCHUNK, "for chunk" + chunks.get(0).getChunkKey().getChunkNum());
+                    }
+                }
                 
                 File file = new File(storage.getPath() + "/backup/file-" + key.getFileId() + "/chunk-" + key.getChunkNum() + ".ser");
             

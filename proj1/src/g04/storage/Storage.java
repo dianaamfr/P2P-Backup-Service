@@ -243,7 +243,7 @@ public class Storage implements Serializable {
         if (this.confirmedChunks.containsKey(chunkKey)) {
             return this.hasStoredChunk(chunkKey) ? this.confirmedChunks.get(chunkKey).size() + 1 : this.confirmedChunks.get(chunkKey).size() ;
         }
-        return 0;
+        return this.hasStoredChunk(chunkKey) ? 1 : 0;
     }
 
 
