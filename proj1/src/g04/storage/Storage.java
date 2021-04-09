@@ -397,6 +397,7 @@ public class Storage implements Serializable {
     }
 
     public boolean hasCapacity(int size) {
+        if (this.capacity == 0) return false;
         return this.capacityUsed + size <= this.capacity;
     }
 
@@ -405,6 +406,8 @@ public class Storage implements Serializable {
     }
 
     public boolean isFull() {
+        if(this.capacity == 0)
+            return this.getStoredChunks().size() > 0;
         return this.capacity < this.capacityUsed;
     }
 
