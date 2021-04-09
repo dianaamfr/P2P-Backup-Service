@@ -34,7 +34,7 @@ public class RemoveHandler implements Runnable {
 
         Chunk chunk;
         try {
-            chunk = this.peer.getStorage().read(chunkKey.getFileId(), chunkKey.getChunkNum());
+            chunk = this.peer.getStorage().read(chunkKey.getFileId(), chunkKey.getChunkNum(), this.peer.getScheduler());
 
             DatagramPacket packet = this.peer.getBackupChannel().putChunkPacket(Utils.PROTOCOL_VERSION, Utils.PEER_ID,
                     chunk);

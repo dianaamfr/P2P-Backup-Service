@@ -48,7 +48,7 @@ public class PutChunkHandler implements Runnable {
                     }
 
                     // Store the chunk
-                    storage.store(chunk);
+                    storage.store(chunk, this.peer.getScheduler());
                     storage.addChunk(chunk.getChunkKey());
                 } else {
                     stored = false;

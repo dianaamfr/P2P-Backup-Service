@@ -59,7 +59,7 @@ public class GetChunkHandler implements Runnable {
         Chunk chunk = new Chunk();
 		try {
             // Read the chunk from non-volatile memory
-			chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum());
+			chunk = storage.read(chunkKey.getFileId(),chunkKey.getChunkNum(), this.peer.getScheduler());
 
             RestoreChannel restoreChannel = this.peer.getRestoreChannel();
             

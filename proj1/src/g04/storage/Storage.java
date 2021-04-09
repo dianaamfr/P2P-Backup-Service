@@ -11,12 +11,14 @@ import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.*;
 import java.util.concurrent.Future;
@@ -159,15 +161,18 @@ public class Storage implements Serializable {
      * @param chunk
      * @throws IOException
      */
-    public void store(Chunk chunk) throws IOException {
+    public void store(Chunk chunk, ExecutorService scheduler) throws IOException {
         String fileDir = this.path + "/backup/file-" + chunk.getFileId();
         Files.createDirectories(Paths.get(fileDir));
 
         Path path = Paths.get(fileDir + "/chunk-" + chunk.getChunkNum() + ".ser");
         this.capacityUsed += chunk.getBuffer().length;
 
-        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE);
+        Set<OpenOption> options = new HashSet<OpenOption>();
+        options.add(StandardOpenOption.CREATE);
+        options.add(StandardOpenOption.WRITE);
+
+        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, options, scheduler);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
@@ -249,15 +254,18 @@ public class Storage implements Serializable {
      * @param restoredChunks
      * @throws IOException
      */
-    public void storeRestored(String fileId, TreeSet<Chunk> restoredChunks) throws IOException {
+    public void storeRestored(String fileId, TreeSet<Chunk> restoredChunks, ExecutorService scheduler) throws IOException {
 
         String fileDir = this.path + "/restored";
         Files.createDirectories(Paths.get(fileDir));
 
         Path path = Paths.get(fileDir + "/" + this.backupFiles.get(fileId).getFileName());
-
-        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.CREATE,
-                StandardOpenOption.WRITE);
+        
+        Set<OpenOption> options = new HashSet<OpenOption>();
+                options.add(StandardOpenOption.CREATE);
+                options.add(StandardOpenOption.WRITE);
+        
+        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, options, scheduler);
 
         ByteBuffer buffer = ByteBuffer.allocate((int) this.backupFiles.get(fileId).getFileSize());
 
@@ -289,11 +297,14 @@ public class Storage implements Serializable {
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public Chunk read(String fileId, int chunkNum) throws IOException, ClassNotFoundException {
+    public Chunk read(String fileId, int chunkNum, ExecutorService scheduler) throws IOException, ClassNotFoundException {
 
         Path path = Paths.get(this.path + "/backup/file-" + fileId + "/chunk-" + chunkNum + ".ser");
 
-        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);
+        Set<OpenOption> options = new HashSet<OpenOption>();
+                options.add(StandardOpenOption.READ);
+        
+        AsynchronousFileChannel channel = AsynchronousFileChannel.open(path, options, scheduler);
 
         ByteBuffer buffer = ByteBuffer.allocate(Utils.CHUNK_SIZE * 2);
 
