@@ -1,0 +1,5 @@
+*.class
+
+proj1/src/g04/output/
+
+proj1/src/build/g04/
