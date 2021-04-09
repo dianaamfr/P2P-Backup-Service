@@ -73,6 +73,9 @@ backup5mb:
 backup10mb: 
 	java g04.TestApp peer1 BACKUP g04/test/test10mb.zip 2
 
+backupbin:
+	java g04.TestApp peer1 BACKUP g04/test/test128kb.bin 3
+
 # Restore tests
 restore: 
 	java g04.TestApp peer0 RESTORE Makefile
@@ -104,6 +107,9 @@ restore5mb:
 restore10mb: 
 	java g04.TestApp peer1 RESTORE test10mb.zip
 
+restorebin: 
+	java g04.TestApp peer1 RESTORE test128kb.bin
+
 # Delete tests
 delete: 
 	java g04.TestApp peer0 DELETE Makefile
@@ -129,12 +135,18 @@ delete6:
 delete7: 
 	java g04.TestApp peer1 DELETE test7.mp3
 
+delete5mb: 
+	java g04.TestApp peer1 DELETE image5mb.jpg
+
 delete10mb: 
 	java g04.TestApp peer1 DELETE test10mb.zip
 
+deletebin: 
+	java g04.TestApp peer1 DELETE test128kb.bin
+
 # Reclaim tests
 reclaim_decrease2:
-	java g04.TestApp peer2 RECLAIM 5000
+	java g04.TestApp peer3 RECLAIM 50
 
 reclaim_increase2:
 	java g04.TestApp peer2 RECLAIM 500000
