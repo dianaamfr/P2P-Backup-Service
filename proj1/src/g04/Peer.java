@@ -202,6 +202,8 @@ public class Peer implements IRemote {
         try {
             SFile file;
 
+            fileName = Paths.get(fileName).getFileName().toString();
+
             // Verify if the file was backed up by this peer
             if ((file = storage.getFileByFileName(fileName)) != null) {
 
