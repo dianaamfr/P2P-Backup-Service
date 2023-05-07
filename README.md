@@ -1,8 +1,15 @@
-# SDIS Project
+# P2P File Backup Service
 
-SDIS Project for group T7G04.
+This repository holds two implementations of a peer-to-peer distributed backup service that supports the backup, restore, and deletion of files. The first implementation provides a service where computers in the same local area network LAN can be used to back up files. The second project uses a design based on the Chord algorithm and aims to provide a backup service across the internet. Both projects were developed for the course on Distributed Systems at FEUP.
+*For a detailed description of each project, please refer to the respective directories, namely [`proj1-backup-service`](./proj1-LAN-backup-service) and [`proj2-chord-backup-service`](proj2-chord-backup-service)*, where you can find the source code, instructions, and report of each project.
 
-Group members:
+## Collaborators:
+**Project 1 - A Distributed File Backup Service**:
+1. [Diana Freitas](https://github.com/dianaamfr)
+2. [Eduardo Brito](https://github.com/edurbrito)
 
-1. Diana Freitas (up201806230@fe.up.pt)
-2. Eduardo Brito (up201806271@fe.up.pt)
+**Project 2 - A Distributed File Backup Service for the Internet *based on Chord***:
+1. [Diana Freitas](https://github.com/dianaamfr)
+2. [Eduardo Brito](https://github.com/edurbrito)
+3. [Hugo Guimarães](https://github.com/Hugomguima)
+3. [Paulo Ribeiro](https://github.com/paulinho-16)

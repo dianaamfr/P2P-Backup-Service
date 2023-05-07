@@ -1,6 +1,4 @@
-# SDIS Project
-
-SDIS Project for group T7G04.
+# Distributed File Backup Service
 
 ## Instructions:
 
@@ -25,3 +23,7 @@ SDIS Project for group T7G04.
     
 6. To kill all the peers processes:
    `killall java`
+
+## Collaborators
+1. [Diana Freitas](https://github.com/dianaamfr)
+2. [Eduardo Brito](https://github.com/edurbrito)
